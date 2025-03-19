@@ -1,10 +1,18 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:get/get.dart';
 import 'package:gradient_borders/box_borders/gradient_box_border.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:tripmates/Constants/Apis_Constants.dart';
 import 'package:tripmates/Constants/button.dart';
 import 'package:tripmates/Constants/utils.dart';
 
+import '../Controller/ProfileController.dart';
+
 class EditProfileScreen extends StatefulWidget {
+
   const EditProfileScreen({super.key});
 
   @override
@@ -12,13 +20,89 @@ class EditProfileScreen extends StatefulWidget {
 }
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
+
+  ProfileController profileController=Get.put(ProfileController());
+
+  final TextEditingController username = TextEditingController();
+  final TextEditingController Bio = TextEditingController();
+  final TextEditingController Location = TextEditingController();
+
+
+
+
   int selectedIndex = 0;
   int selectedIndex1 = 0;
+  String?selectedGender;
+  String?selectedstatus;
 
   List<String> _taglist = [];
   final TextEditingController _tagController = TextEditingController();
   List<String> _taglisthobbies = [];
   final TextEditingController _taghobbiesController = TextEditingController();
+
+  File? _selectedCoverImage;
+  File? _selectedProfileImage;
+
+  final ImagePicker _picker = ImagePicker();
+
+  // Function to select a cover image
+  Future<void> _pickCoverImage() async {
+    final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      setState(() {
+        _selectedCoverImage = File(pickedFile.path);
+      });
+    }
+  }
+
+  // Function to select a profile image
+  Future<void> _pickProfileImage() async {
+    final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      setState(() {
+        _selectedProfileImage = File(pickedFile.path);
+      });
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Fetch profile data safely
+    Future.microtask(() async {
+      await profileController.GetProfile();
+
+      if (profileController.profile != null && profileController.profile!.profile != null) {
+        setState(() {
+          username.text = profileController.profile!.userName ?? "";
+          Bio.text = profileController.profile!.profile!.bio ?? "";
+          Location.text = profileController.profile!.profile!.location ?? "";
+
+          // Assign selectedIndex correctly
+          if (profileController.profile!.profile!.gender == "male") {
+            selectedIndex = 0;
+          } else if (profileController.profile!.profile!.gender == "female") {
+            selectedIndex = 1;
+          } else {
+            selectedIndex = 2;
+          }
+          //Status
+          if (profileController.profile!.profile!.status == "traveler") {
+            selectedIndex = 0;
+          }  else {
+            selectedIndex = 1;
+          }
+
+        //......Langauges
+        _taglisthobbies=profileController.profile?.profile?.interests ??[];
+          _taglist=profileController.profile?.profile?.language ??[];
+        });
+      }
+    });
+  }
+
+
 
   List gender = [
     'Male',
@@ -64,36 +148,53 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             Stack(
               alignment: Alignment.bottomLeft,
               children: [
-                Padding(
-                  padding: const EdgeInsets.only(
-                    bottom: 53,
-                  ),
-                  child: Container(
-                    width: double.infinity,
-                    height: 126,
-                    decoration: BoxDecoration(
+                // Cover Image
+                GestureDetector(
+                  onTap: _pickCoverImage,
+                  child: Padding(
+                    padding: const EdgeInsets.only(bottom: 53),
+                    child: Container(
+                      width: double.infinity,
+                      height: 126,
+                      decoration: BoxDecoration(
                         image: DecorationImage(
-                            fit: BoxFit.cover,
-                            image: AssetImage(
-                                'assets/fantasy-shooting-star-landscape-night (1).png'))),
-                    child:
-                        Center(child: SvgPicture.asset('assets/Add Photo.svg')),
+                          fit: BoxFit.cover,
+                          image: _selectedCoverImage != null
+                              ? FileImage(_selectedCoverImage!) as ImageProvider
+                              : NetworkImage('${Apis.ip}${profileController.profile?.profile?.coverImage}'),
+                        ),
+                      ),
+                      child: Center(
+                        child: _selectedCoverImage == null
+                            ? SvgPicture.asset('assets/Add Photo.svg')
+                            : null, // Hide Add Photo icon when an image is selected
+                      ),
+                    ),
                   ),
                 ),
+
+                // Profile Image
                 Padding(
                   padding: const EdgeInsets.only(left: 20),
                   child: Stack(
                     alignment: Alignment.bottomRight,
                     children: [
-                      Padding(
-                        padding: const EdgeInsets.only(right: 20, bottom: 6),
-                        child: CircleAvatar(
-                          radius: 49,
-                          backgroundImage:
-                              AssetImage('assets/Group 48096083.png'),
+                      GestureDetector(
+                        onTap: _pickProfileImage,
+                        child: Padding(
+                          padding: const EdgeInsets.only(right: 20, bottom: 6),
+                          child: CircleAvatar(
+                            radius: 49,
+                            backgroundImage: _selectedProfileImage != null
+                                ? FileImage(_selectedProfileImage!)
+                                : NetworkImage('${Apis.ip}${profileController.profile?.profile?.images?[0]}') as ImageProvider,
+                          ),
                         ),
                       ),
-                      SvgPicture.asset('assets/Add Photo.svg'),
+                      GestureDetector(
+                        onTap: _pickProfileImage,
+                        child: SvgPicture.asset('assets/Add Photo.svg'),
+                      ),
                     ],
                   ),
                 ),
@@ -104,50 +205,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'Name',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  SizedBox(
-                    height: 6,
-                  ),
-                  Container(
-                    decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(7),
-                        gradient: lefttorightgradient),
-                    child: Padding(
-                      padding: const EdgeInsets.only(bottom: 2.3),
-                      child: TextFormField(
-                        style: TextStyle(fontSize: 16, color: Colors.black),
-                        cursorHeight: 23,
-                        decoration: InputDecoration(
-                          filled: true,
-                          fillColor: Color(0xffF1F1F1),
-                          enabled: true,
-                          enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(7),
-                              borderSide: BorderSide.none),
-                          focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(7),
-                              borderSide: BorderSide.none),
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 20,
-                            vertical: 16,
-                          ),
-                          border: InputBorder.none,
-                          hintText: 'Enter Your Full Name',
-                          hintStyle:
-                              TextStyle(fontSize: 14, color: Color(0xff7B7575)),
-                        ),
-                      ),
-                    ),
-                  ),
-                  SizedBox(
-                    height: 23,
-                  ),
+
+
                   Text(
                     'User Name',
                     style: TextStyle(
@@ -167,6 +226,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       child: TextFormField(
                         style: TextStyle(fontSize: 16, color: Colors.black),
                         cursorHeight: 23,
+                        controller: username,
                         decoration: InputDecoration(
                           filled: true,
                           fillColor: Color(0xffF1F1F1),
@@ -210,6 +270,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       padding: const EdgeInsets.only(bottom: 2.3),
                       child: TextFormField(
                         maxLines: 4,
+                        controller: Bio,
                         style: TextStyle(fontSize: 16, color: Colors.black),
                         cursorHeight: 23,
                         decoration: InputDecoration(
@@ -272,6 +333,18 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                               onTap: () {
                                 setState(() {
                                   selectedIndex = index;
+                                  if(selectedIndex==0){
+                                    selectedGender="Male";
+                                    print("selected gender : s=$selectedGender");
+                                  }else if(selectedIndex==1){
+                                    selectedGender="Female";
+                                    print("selected gender : s=$selectedGender");
+
+                                  }else{
+                                    selectedGender="Non-Binary";
+                                    print("selected gender : s=$selectedGender");
+
+                                  }
                                 });
                               },
                               child: Container(
@@ -320,6 +393,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         child: TextFormField(
                           style: TextStyle(fontSize: 16, color: Colors.black),
                           cursorHeight: 23,
+                          controller: Location,
                           decoration: InputDecoration(
                             filled: true,
                             fillColor: Color(0xffF1F1F1),
@@ -401,6 +475,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                               onTap: () {
                                 setState(() {
                                   selectedIndex1 = index;
+                                  if(selectedIndex==0){
+                                    selectedstatus="Traveler";
+                                    print("selected gender : s=$selectedstatus");
+                                  }else{
+                                    selectedGender="Local";
+                                    print("selected gender : s=$selectedstatus");
+
+                                  }
                                 });
                               },
                               child: Container(
@@ -646,9 +728,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           borderRadius: BorderRadius.circular(10),
                           height: 60,
                           width: double.infinity,
-                          onTap: () {
-                            // Navigator.push(context,
-                            //     MaterialPageRoute(builder: (context) => HomeScreen()));
+                          onTap: () async{
+                            await profileController.editProfile(age: profileController.profile?.profile?.age.toString()??"18", gender: selectedGender.toString(), status: selectedstatus.toString(), bio: Bio.text, interests: _taglisthobbies, Language: _taglist, longitude: "-89", latitude: "90", userName: username.text,coverImage: _selectedCoverImage,image: _selectedProfileImage);
+
                           },
                           child: const Center(
                               child: Text(

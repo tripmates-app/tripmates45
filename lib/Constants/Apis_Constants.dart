@@ -3,7 +3,7 @@
 class Apis{
 
 // ip
-static String ip="http://192.168.100.63:3001";
+static String ip="http://192.168.18.28:3001";
 // BaseUrl
 static String baseurl="$ip/api";
 
@@ -16,6 +16,21 @@ static String baseurl="$ip/api";
 
 //.........................Profile..............................
   static String Profile="$baseurl/user/profile";
+  static String GalleryList="$baseurl/gallery/list";
+  static String GalleryUpload="$baseurl/gallery/upload";
+  static String EditeProfile="$baseurl/user/update";
+  static String TotalActivity="$baseurl/activity/created-activities-count";
+  static String TotalMatch="$baseurl/mate/total-mates";
+  static String JoinedActivites="$baseurl/activity/joined-activities-count";
+  static String userMatches="$baseurl/mate/liked-mates";
+  static String ListJoinedActivites="$baseurl/activity/user-activities";
+
+
+
+
+
+
+
 
 //.........................Mates profileView.....................
   static String MateProfile="$baseurl/privacy/profile";
@@ -56,6 +71,12 @@ static String baseurl="$ip/api";
 //......................privacyPolicy..............................
   static String UpdatePolicy="$baseurl/privacy/updatePrivacy";
   static String Getprivacy="$baseurl/privacy/getPrivacySettings";
+
+
+//..........................Chats....................................
+  static String StartConverstaion="$baseurl/message/send";
+  static String GetChatsList="$baseurl/message/cheatlist";
+
 
 
 

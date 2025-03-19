@@ -7,6 +7,12 @@ import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:tripmates/Constants/Apis_Constants.dart';
 import 'package:tripmates/Constants/utils.dart';
 import 'package:tripmates/Controller/ProfileController.dart';
+import 'package:tripmates/ProfileScreens/TotalActivitesScreen.dart';
+import 'package:tripmates/ProfileScreens/TotalMatchesListScreen.dart';
+import 'package:tripmates/ProfileScreens/UploadGalleryImage.dart';
+import 'package:tripmates/ProfileScreens/joinedactivities_screen.dart';
+
+import 'editprofile_screen.dart';
 
 class ProfileViewScreen extends StatefulWidget {
   const ProfileViewScreen({super.key});
@@ -24,6 +30,10 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
     // TODO: implement initState
     super.initState();
     profileController.GetProfile();
+    profileController.GetGalleryList();
+    profileController.TotalActivites();
+    profileController.TotalMatches();
+    profileController.JoinedActivites();
   }
 
   double percent = 0.4;
@@ -61,7 +71,11 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      SvgPicture.asset('assets/edit.svg')
+                      InkWell(
+                        onTap: (){
+                          Get.to(()=> EditProfileScreen());
+                        },
+                          child: SvgPicture.asset('assets/edit.svg'))
                     ],
                   ),
                 ),
@@ -82,7 +96,7 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
                             image: DecorationImage(
                                 fit: BoxFit.cover,
                                 image: NetworkImage(
-                                    '${Apis.ip}${profileController.profile?.profile?.images?[0].toString()}'))),
+                                    '${Apis.ip}${profileController.profile?.profile?.coverImage.toString()}'))),
                       ),
                     ),
                     Padding(
@@ -192,7 +206,7 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
                         height: 7,
                       ),
                       Text(
-                        '456 Oak Avenue, Suite 202, Portland, OR 97205, USA',
+                        '${profileController.profile?.profile?.location.toString()}',
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
@@ -338,93 +352,50 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
                       Row(
                         children: [
                           Expanded(
-                            child: Container(
-                              height: 86,
-                              decoration: BoxDecoration(
-                                color: Color(0xffFFF6E7),
-                                borderRadius: BorderRadius.circular(10),
-                                border: GradientBoxBorder(
-                                  width: 2.3,
-                                  gradient: lefttorightgradient,
+                            child: InkWell(
+                              onTap: (){
+                                Get.to(()=> Totalactivitesscreen());
+                              },
+                              child: Container(
+                                height: 86,
+                                decoration: BoxDecoration(
+                                  color: Color(0xffFFF6E7),
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: GradientBoxBorder(
+                                    width: 2.3,
+                                    gradient: lefttorightgradient,
+                                  ),
                                 ),
-                              ),
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 10),
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Text(
-                                          '40 +',
-                                          style: TextStyle(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.w900,
-                                              color: Color(0xff339003)),
-                                        ),
-                                        SvgPicture.asset('assets/br.svg')
-                                      ],
-                                    ),
-                                    SizedBox(
-                                      height: 9,
-                                    ),
-                                    Text(
-                                      'Total Activities',
-                                      style: TextStyle(
-                                          fontSize: 13, color: Colors.black),
-                                    )
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                          SizedBox(
-                            width: 6,
-                          ),
-                          Expanded(
-                            child: Container(
-                              height: 86,
-                              decoration: BoxDecoration(
-                                color: Color(0xffBEFFF8),
-                                borderRadius: BorderRadius.circular(10),
-                                border: GradientBoxBorder(
-                                  width: 2.3,
-                                  gradient: lefttorightgradient,
-                                ),
-                              ),
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 10),
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Text(
-                                          '40 +',
-                                          style: TextStyle(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.w900,
-                                              color: Color(0xff339003)),
-                                        ),
-                                        SvgPicture.asset(
-                                            'assets/Group 48096198.svg')
-                                      ],
-                                    ),
-                                    SizedBox(
-                                      height: 9,
-                                    ),
-                                    Text(
-                                      'Total Matches',
-                                      style: TextStyle(
-                                          fontSize: 13, color: Colors.black),
-                                    )
-                                  ],
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Text(
+                                            '${profileController.totalActivityCount?.totalActivitiesCreated.toString()} +',
+                                            style: TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.w900,
+                                                color: Color(0xff339003)),
+                                          ),
+                                          SvgPicture.asset('assets/br.svg')
+                                        ],
+                                      ),
+                                      SizedBox(
+                                        height: 9,
+                                      ),
+                                      Text(
+                                        'Total Activities',
+                                        style: TextStyle(
+                                            fontSize: 13, color: Colors.black),
+                                      )
+                                    ],
+                                  ),
                                 ),
                               ),
                             ),
@@ -433,46 +404,104 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
                             width: 6,
                           ),
                           Expanded(
-                            child: Container(
-                              height: 86,
-                              decoration: BoxDecoration(
-                                color: Color(0xffFFE1C0),
-                                borderRadius: BorderRadius.circular(10),
-                                border: GradientBoxBorder(
-                                  width: 2.3,
-                                  gradient: lefttorightgradient,
+                            child: InkWell(
+                              onTap: (){
+                                Get.to(()=> Totalmatcheslistscreen());
+                              },
+                              child: Container(
+                                height: 86,
+                                decoration: BoxDecoration(
+                                  color: Color(0xffBEFFF8),
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: GradientBoxBorder(
+                                    width: 2.3,
+                                    gradient: lefttorightgradient,
+                                  ),
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Text(
+                                            '${profileController.totalMatchCount?.totalMates.toString()} +',
+                                            style: TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.w900,
+                                                color: Color(0xff339003)),
+                                          ),
+                                          SvgPicture.asset(
+                                              'assets/Group 48096198.svg')
+                                        ],
+                                      ),
+                                      SizedBox(
+                                        height: 9,
+                                      ),
+                                      Text(
+                                        'Total Matches',
+                                        style: TextStyle(
+                                            fontSize: 13, color: Colors.black),
+                                      )
+                                    ],
+                                  ),
                                 ),
                               ),
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 10),
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Text(
-                                          '40 +',
-                                          style: TextStyle(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.w900,
-                                              color: Color(0xff339003)),
-                                        ),
-                                        SvgPicture.asset(
-                                            'assets/Group 48096116.svg')
-                                      ],
-                                    ),
-                                    SizedBox(
-                                      height: 9,
-                                    ),
-                                    Text(
-                                      'Joined Activities',
-                                      style: TextStyle(
-                                          fontSize: 13, color: Colors.black),
-                                    )
-                                  ],
+                            ),
+                          ),
+                          SizedBox(
+                            width: 6,
+                          ),
+                          Expanded(
+                            child: InkWell(
+                              onTap: (){
+                                Get.to(()=> JoinedactivitiesScreen());
+                              },
+                              child: Container(
+                                height: 86,
+                                decoration: BoxDecoration(
+                                  color: Color(0xffFFE1C0),
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: GradientBoxBorder(
+                                    width: 2.3,
+                                    gradient: lefttorightgradient,
+                                  ),
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Text(
+                                            '${profileController.totalJoinedActivitesCount?.totalActivitiesJoined.toString()} +',
+                                            style: TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.w900,
+                                                color: Color(0xff339003)),
+                                          ),
+                                          SvgPicture.asset(
+                                              'assets/Group 48096116.svg')
+                                        ],
+                                      ),
+                                      SizedBox(
+                                        height: 9,
+                                      ),
+                                      Text(
+                                        'Joined Activities',
+                                        style: TextStyle(
+                                            fontSize: 13, color: Colors.black),
+                                      )
+                                    ],
+                                  ),
                                 ),
                               ),
                             ),
@@ -499,21 +528,26 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          Container(
-                            height: 43,
-                            width: 100,
-                            padding: const EdgeInsets.only(left: 7, right: 7),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(13),
-                              color: Color(0xffD9D9D9),
-                            ),
-                            child: Center(
-                              child: Text(
-                                'Add Photos',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.black,
+                          InkWell(
+                            onTap: (){
+                              Get.to(()=> ImageUploadScreen());
+                            },
+                            child: Container(
+                              height: 43,
+                              width: 100,
+                              padding: const EdgeInsets.only(left: 7, right: 7),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(13),
+                                color: Color(0xffD9D9D9),
+                              ),
+                              child: Center(
+                                child: Text(
+                                  'Add Photos',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black,
+                                  ),
                                 ),
                               ),
                             ),
@@ -527,7 +561,7 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
                           physics: NeverScrollableScrollPhysics(),
                           padding: EdgeInsets.zero,
                           shrinkWrap: true,
-                          itemCount: 5,
+                          itemCount: profileController.galleryDataModel?.gallery?.length??0,
                           itemBuilder: (BuildContext context, int index) {
                             return Padding(
                               padding: const EdgeInsets.only(top: 15),
@@ -537,7 +571,7 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
                                     children: [
                                       Expanded(
                                         child: Text(
-                                          "Lorem Ipsum has been the industry's standard dummy text ever since the 1500s,",
+                                          "${profileController.galleryDataModel?.gallery?[index].description.toString()}",
                                           style: TextStyle(fontSize: 16),
                                         ),
                                       ),
@@ -594,8 +628,9 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
                                         borderRadius: BorderRadius.circular(10),
                                         image: DecorationImage(
                                             fit: BoxFit.cover,
-                                            image: AssetImage('assets/boy.png'))),
+                                            image: NetworkImage('${Apis.ip}${profileController.galleryDataModel?.gallery?[index].images?[0].toString()}'))),
                                   ),
+                                  SizedBox(height: 50,)
                                 ],
                               ),
                             );

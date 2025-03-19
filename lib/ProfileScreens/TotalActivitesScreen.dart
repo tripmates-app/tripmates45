@@ -7,7 +7,6 @@ import 'package:tripmates/Activities_Screens/EditeActivity.dart';
 import 'package:tripmates/Activities_Screens/createactivity_screen.dart';
 import 'package:tripmates/Constants/custom_appbar.dart';
 import 'package:tripmates/Constants/utils.dart';
-import 'package:tripmates/Controller/ProfileController.dart';
 
 import '../Activities_Screens/eventsdetails_screen.dart';
 import '../Constants/Apis_Constants.dart';
@@ -15,23 +14,21 @@ import '../Constants/bottombar.dart';
 import '../Controller/AcitivityController.dart';
 
 
-class JoinedactivitiesScreen extends StatefulWidget {
-  JoinedactivitiesScreen({super.key});
+class Totalactivitesscreen extends StatefulWidget {
+  Totalactivitesscreen({super.key});
 
   @override
-  State<JoinedactivitiesScreen> createState() => _JoinedactivitiesScreenState();
+  State<Totalactivitesscreen> createState() => _TotalactivitesscreenState();
 }
 
-class _JoinedactivitiesScreenState extends State<JoinedactivitiesScreen> {
- ProfileController profileController=Get.put(ProfileController());
- Acitivitycontroller  acitivitycontroller=Get.put(Acitivitycontroller());
+class _TotalactivitesscreenState extends State<Totalactivitesscreen> {
+  Acitivitycontroller  acitivitycontroller=Get.put(Acitivitycontroller());
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    profileController.JoinedActivitesList();
+    acitivitycontroller.MyActivitie();
   }
-
   String formatDateTime(String dateTimeString) {
     try {
       DateTime dateTime = DateTime.parse(dateTimeString).toLocal();
@@ -79,8 +76,8 @@ class _JoinedactivitiesScreenState extends State<JoinedactivitiesScreen> {
         padding: const EdgeInsets.only(top: 20,left: 20,right: 20),
         child: SingleChildScrollView(
           scrollDirection: Axis.vertical,
-          child: GetBuilder<ProfileController>(
-              id: "Profile_update",
+          child: GetBuilder<Acitivitycontroller>(
+              id: "Activity_update",
               builder: (_) {
                 return Column(
                   // mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -91,19 +88,19 @@ class _JoinedactivitiesScreenState extends State<JoinedactivitiesScreen> {
                         return ListView.builder(
                           physics: NeverScrollableScrollPhysics(),
                           shrinkWrap: true,
-                          itemCount: profileController.joinedActivitesModel?.activities?.length ?? 0,
+                          itemCount: acitivitycontroller.myActivityModel?.activities?.length ?? 0,
                           itemBuilder: (BuildContext context, int index) {
-                            final name = profileController.joinedActivitesModel?.activities?[index].name ?? "No Name";
-                            final location = profileController.joinedActivitesModel?.activities?[index].location ?? "No specific location";
-                            final description = profileController.joinedActivitesModel?.activities?[index].description ?? "No Description";
-                            final imageList = profileController.joinedActivitesModel?.activities?[index].image;
+                            final name = acitivitycontroller.myActivityModel?.activities?[index].name ?? "No Name";
+                            final location = acitivitycontroller.myActivityModel?.activities?[index].location ?? "No specific location";
+                            final description = acitivitycontroller.myActivityModel?.activities?[index].description ?? "No Description";
+                            final imageList = acitivitycontroller.myActivityModel?.activities?[index].images;
                             final image = (imageList != null && imageList.isNotEmpty) ? imageList[0] : "No image";
-                            final totalSlots =  profileController.joinedActivitesModel?.activities?[index].slot.toString() ?? "0";
-                            final date =  profileController.joinedActivitesModel?.activities?[index].dateTime?.toString() ?? "0";
+                            final totalSlots =  acitivitycontroller.myActivityModel?.activities?[index].totalSlots?.toString() ?? "0";
+                            final date =  acitivitycontroller.myActivityModel?.activities?[index].dateTime?.toString() ?? "0";
                             // final time =  acitivitycontroller.myActivityModel?.activities?[index].time?.toString() ?? "0";
                             // final paid = acitivitycontroller.myActivityModel?.activities?[index].;
-                            final remainingSlots = profileController.joinedActivitesModel?.activities?[index].remainingSlots?.toString() ?? "0";
-                            final id = profileController.joinedActivitesModel?.activities?[index].activityId?.toString() ?? "0";
+                            final remainingSlots = acitivitycontroller.myActivityModel?.activities?[index].slots?.toString() ?? "0";
+                            final id = acitivitycontroller.myActivityModel?.activities?[index].activityID?.toString() ?? "0";
 
                             return InkWell(
                               onTap: () {
@@ -225,19 +222,27 @@ class _JoinedactivitiesScreenState extends State<JoinedactivitiesScreen> {
                                                   children: [
                                                     InkWell(
                                                         onTap: ()async{
-
-                                                            await acitivitycontroller.LeaveActivity(id);
-                                                            await acitivitycontroller.ActivitieList();
-
+                                                          await acitivitycontroller.DeleteActivity(id);
+                                                          await acitivitycontroller.MyActivitie();
 
                                                         },
-                                                        child: _buildButton("Leave", Colors.red)),
+                                                        child: _buildButton("Delete", Colors.red)),
                                                     SizedBox(width: 10),
                                                     InkWell(
                                                         onTap: ()async{
+                                                          Get.to(()=> Editeactivity(
+                                                            ActivityType: name,
+                                                            Description: description,
+                                                            image: image,
+                                                            Dateandtime: date,
+                                                            location: location,
+                                                            numberofPeople: totalSlots,
+                                                            TotalTime: "2",
+                                                            id: id,
 
+                                                          ));
                                                         },
-                                                        child: _buildButtonWithIcon("Joined", Colors.green)),
+                                                        child: _buildButtonWithIcon("Edite", Color(0xff007BFD))),
                                                   ],
                                                 )
                                                 // Row(

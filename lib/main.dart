@@ -8,6 +8,8 @@ import 'package:tripmates/Constants/theme_data.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'Services/PushNotifications.dart';
 import 'firebase_options.dart';
+import 'package:hive/hive.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -15,8 +17,8 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  // User? user = FirebaseAuth.instance.currentUser;
 
+  // Request permission for Firebase Cloud Messaging (FCM)
   await FirebaseMessaging.instance.requestPermission();
 
   String? token = await FirebaseMessaging.instance.getToken();
@@ -25,13 +27,17 @@ void main() async {
   // Initialize push notifications
   await PushNotificationService.initialize();
 
+  // 🟢 Initialize Hive
+  await Hive.initFlutter();
+  await Hive.openBox('chatBox'); // Open the chat box for storing messages
 
   SystemChrome.setSystemUIOverlayStyle(
-    SystemUiOverlayStyle(
-        systemNavigationBarColor: Colors.transparent, // navigation bar color
-        statusBarColor: Colors.transparent, // status bar color
+    const SystemUiOverlayStyle(
+        systemNavigationBarColor: Colors.transparent,
+        statusBarColor: Colors.transparent,
         statusBarIconBrightness: Brightness.dark),
   );
+
   runApp(const MyApp());
 }
 

@@ -9,6 +9,7 @@ import 'package:tripmates/Constants/Apis_Constants.dart';
 import 'package:tripmates/Constants/custom_appbar.dart';
 import 'package:tripmates/Constants/listdata.dart';
 import 'package:tripmates/Constants/utils.dart';
+import 'package:tripmates/Controller/ChatController.dart';
 import 'package:tripmates/Controller/MatesController.dart';
 import 'package:tripmates/Controller/ProfileController.dart';
 import 'package:tripmates/Home_Screen/userinfo_screen.dart';
@@ -23,6 +24,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  // Chatcontroller chatcontroller=Get.put(Chatcontroller());
  ProfileController profileController=Get.put(ProfileController());
  Matescontroller matescontroller=Get.put(Matescontroller());
  Acitivitycontroller acitivitycontroller=Get.put(Acitivitycontroller());
