@@ -1,6 +1,7 @@
 
 
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:shared_preferences/shared_preferences.dart';
 import "package:http/http.dart" as http;
@@ -11,36 +12,53 @@ class Chatrespository{
 
 //..........................................Get Privacy Policy.........................
 
-  Future<Map<String, dynamic>?> StartConversation(String receiverId, String message,) async {
+  Future<Map<String, dynamic>?> StartConversation(
+      String receiverId,
+      String message, {
+        List<File>? imageFiles, // Optional list of images
+      }) async {
     SharedPreferences pref = await SharedPreferences.getInstance();
     final token = pref.getString("token");
-    print("The token is : $token");
-    Map<String, dynamic> requestData = {
-      "receiverId": receiverId,
-      "message": message
-    };
+    print("The token is: $token");
+
     try {
-      final response = await http.post(
-          Uri.parse(Apis.StartConverstaion),
+      var request = http.MultipartRequest("POST", Uri.parse(Apis.StartConverstaion));
 
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": "Bearer $token", // Add if required
-          },
-          body: jsonEncode(requestData)
+      // Add headers
+      request.headers.addAll({
+        "Authorization": "Bearer $token",
+      });
 
+      // Add text fields
+      request.fields["receiverId"] = receiverId;
+      request.fields["message"] = message;
 
-      );
-      print("The token is : ${response.body}");
+      // Add multiple images if provided
+      if (imageFiles != null && imageFiles.isNotEmpty) {
+        for (var imageFile in imageFiles) {
+          request.files.add(
+            await http.MultipartFile.fromPath("images", imageFile.path),
+          );
+        }
+      }
+
+      // Send request
+      var response = await request.send();
+      var responseBody = await response.stream.bytesToString();
+
+      print("Response: $responseBody");
+
       if (response.statusCode == 200 || response.statusCode == 201) {
-        return jsonDecode(response.body); // Return response as Map
+        return jsonDecode(responseBody); // Return response as Map
       } else {
         return null;
       }
     } catch (e) {
+      print("Error: $e");
       return null;
     }
   }
+
 
 
 //................................... ChatList .............................

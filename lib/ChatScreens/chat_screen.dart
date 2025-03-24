@@ -162,6 +162,11 @@ class _ChatScreenState extends State<ChatScreen> {
                     .where((message) => !_isMessageDeleted(message['messageId']))
                     .toList();
 
+                // Mark messages as seen when they arrive
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  _markMessagesAsSeen(firestoreMessages);
+                });
+
                 final pendingMessages = _pendingMessages.where((pending) {
                   return !firestoreMessages.any((firestore) =>
                   firestore['message'] == pending['message'] &&
@@ -186,6 +191,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     final isPending = pendingMessages.contains(message);
                     final isCurrentUser = message['senderId'] == widget.currentuserid;
                     final isSelected = _selectedMessages.contains(message['messageId'] ?? message['tempId']);
+                    final isSeen = message['seen'] ?? false;
 
                     return GestureDetector(
                       onLongPress: () => _handleLongPress(message),
@@ -200,6 +206,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         isTemp: isPending,
                         isSelected: isSelected,
                         isSelecting: _isSelecting,
+                        isSeen: isSeen,
                         onDelete: () => _deleteMessage(message),
                       ),
                     );
@@ -212,6 +219,34 @@ class _ChatScreenState extends State<ChatScreen> {
         ],
       ),
     );
+  }
+
+  Future<void> _markMessagesAsSeen(List<Map<String, dynamic>> messages) async {
+    try {
+      final unreadMessages = messages.where((msg) =>
+      msg['senderId'] != widget.currentuserid &&
+          (msg['seen'] == null || msg['seen'] == false) &&
+          msg['messageId'] != null
+      );
+
+      final batch = _firestore.batch();
+
+      for (var msg in unreadMessages) {
+        final docRef = _firestore
+            .collection('chats')
+            .doc(widget.conversationId)
+            .collection('messages')
+            .doc(msg['messageId']);
+
+        batch.update(docRef, {'seen': true});
+      }
+
+      if (unreadMessages.isNotEmpty) {
+        await batch.commit();
+      }
+    } catch (e) {
+      print("❌ Error marking messages as seen: $e");
+    }
   }
 
   bool _isMessageDeleted(String messageId) {
@@ -394,7 +429,9 @@ class _ChatScreenState extends State<ChatScreen> {
     Map<String, dynamic> tempMessage = {
       'message': messageText,
       'senderId': widget.currentuserid,
+      'receiverId': widget.reciverid,
       'timestamp': Timestamp.now(),
+      'seen': false,
       'tempId': tempId,
     };
 
@@ -405,7 +442,11 @@ class _ChatScreenState extends State<ChatScreen> {
     _messageController.clear();
 
     try {
-      await Chatrespository().StartConversation(widget.reciverid, messageText);
+      await Chatrespository().StartConversation(
+        widget.reciverid,
+        messageText,
+        // isSeen: false,
+      );
     } catch (e) {
       print("❌ Error sending message: $e");
       setState(() {
@@ -421,6 +462,7 @@ class MessageBubble extends StatelessWidget {
   final bool isTemp;
   final bool isSelected;
   final bool isSelecting;
+  final bool isSeen;
   final VoidCallback onDelete;
 
   const MessageBubble({
@@ -431,6 +473,7 @@ class MessageBubble extends StatelessWidget {
     this.isSelected = false,
     this.isSelecting = false,
     required this.onDelete,
+    required this.isSeen,
   }) : super(key: key);
 
   @override
@@ -483,10 +526,28 @@ class MessageBubble extends StatelessWidget {
                     style: const TextStyle(fontSize: 10, color: Colors.black),
                   ),
                   if (isSentByMe)
-                    Icon(
-                      isTemp ? Icons.access_time : Icons.check,
-                      size: 14,
-                      color: Colors.black,
+                    Row(
+                      children: [
+                        Icon(
+                          isTemp
+                              ? Icons.access_time
+                              : isSeen
+                              ? Icons.check
+                              : Icons.check,
+                          size: 14,
+                          color: isTemp
+                              ? Colors.black
+                              : isSeen
+                              ? Colors.white
+                              : Colors.black,
+                        ),
+                        if (!isTemp && isSeen)
+                          const Icon(
+                            Icons.check,
+                            size: 14,
+                            color: Colors.white,
+                          ),
+                      ],
                     ),
                 ],
               ),
