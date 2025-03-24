@@ -71,22 +71,22 @@ class Chatcontroller extends GetxController {
         }
       });
 
-      _socket!.on('pendingMessages', (data) {
-        if (data == null || data is! List) {
-          print('❌ Invalid pending messages data received');
-          return;
-        }
-
-        final List<MessageModel> pendingMessages = data
-            .map((e) => MessageModel.fromJson(Map<String, dynamic>.from(e), profileController.profile?.userId.toString() ?? ""))
-            .where((msg) => msg.conversationId.toString() == currentConversationId) // Only load messages for the open chat
-            .toList();
-
-        messages.addAll(pendingMessages);
-        for (var message in pendingMessages) {
-          chatBox!.add(message.toJson());
-        }
-      });
+      // _socket!.on('pendingMessages', (data) {
+      //   if (data == null || data is! List) {
+      //     print('❌ Invalid pending messages data received');
+      //     return;
+      //   }
+      //
+      //   final List<MessageModel> pendingMessages = data
+      //       .map((e) => MessageModel.fromJson(Map<String, dynamic>.from(e), profileController.profile?.userId.toString() ?? ""))
+      //       .where((msg) => msg.conversationId.toString() == currentConversationId) // Only load messages for the open chat
+      //       .toList();
+      //
+      //   messages.addAll(pendingMessages);
+      //   for (var message in pendingMessages) {
+      //     chatBox!.add(message.toJson());
+      //   }
+      // });
 
       _socket!.onError((error) {
         print('❌ Socket.IO error: $error');
@@ -105,39 +105,60 @@ class Chatcontroller extends GetxController {
   }
 
   // Send message
-  Future<void> sendMessage(String receiverId, String messageText) async {
+
+
+  // 🔥 Delete a single message
+  Future<void> deleteMessage(int messageId) async {
+    try {
+      messages.removeWhere((msg) => msg.id == messageId);
+      final messageIndex = chatBox!.values.toList().indexWhere((element) {
+        return MessageModel.fromJson(Map<String, dynamic>.from(element), profileController.profile?.userId.toString() ?? "").id == messageId;
+      });
+
+      if (messageIndex != -1) {
+        await chatBox!.deleteAt(messageIndex);
+      }
+
+      print("✅ Message deleted successfully");
+    } catch (e) {
+      print("❌ Error deleting message: $e");
+    }
+  }
+
+  // 🔥 Clear all messages in the active chat
+  Future<void> clearAllMessages() async {
     if (currentConversationId == null) {
-      print("❌ No active conversation, cannot send message.");
+      print("❌ No active conversation selected, cannot clear messages.");
       return;
     }
 
-    final tempMessage = MessageModel(
-      id: DateTime.now().millisecondsSinceEpoch,
-      senderId: int.parse(profileController.profile?.userId.toString() ?? ""),
-      conversationId: int.parse(currentConversationId!),
-      groupId: null,
-      message: messageText,
-      createdAt: DateTime.now(),
-      updatedAt: DateTime.now(),
-      isSentByMe: true,
-    );
-
-    messages.add(tempMessage);
-
     try {
-      final response = await Chatrespository().StartConversation(receiverId, messageText);
-      if (response == null) {
-        messages.remove(tempMessage);
-      } else {
-        final sentMessage = MessageModel.fromJson(response, profileController.profile?.userId.toString() ?? "");
-        messages[messages.length - 1] = sentMessage;
-        chatBox!.add(sentMessage.toJson());
+      // Remove only the messages from the active conversation
+      messages.removeWhere((msg) => msg.conversationId.toString() == currentConversationId);
+
+      // Filter and delete only the messages related to the current conversation from Hive
+      final keysToDelete = chatBox!.keys.where((key) {
+        var messageData = chatBox!.get(key);
+        if (messageData != null) {
+          var message = MessageModel.fromJson(
+            Map<String, dynamic>.from(messageData),
+            profileController.profile?.userId.toString() ?? "",
+          );
+          return message.conversationId.toString() == currentConversationId;
+        }
+        return false;
+      }).toList();
+
+      for (var key in keysToDelete) {
+        await chatBox!.delete(key);
       }
+
+      print("✅ All messages cleared for conversation: $currentConversationId");
     } catch (e) {
-      print("❌ Error sending message: $e");
-      messages.remove(tempMessage);
+      print("❌ Error clearing messages: $e");
     }
   }
+
 
   @override
   void onClose() {

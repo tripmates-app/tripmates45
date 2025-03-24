@@ -3,62 +3,62 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:simple_gradient_text/simple_gradient_text.dart';
+import 'package:tripmates/ChatScreens/GroupMessageScreen.dart';
 import 'package:tripmates/Constants/Apis_Constants.dart';
 import 'package:tripmates/Controller/ChatsListController.dart';
 
 import '../Controller/ProfileController.dart';
 import 'chat_screen.dart';
 
-class ChatList extends StatefulWidget {
-  const ChatList({super.key});
+class Groupchatlist extends StatefulWidget {
+  const Groupchatlist({super.key});
 
   @override
-  State<ChatList> createState() => _ChatListState();
+  State<Groupchatlist> createState() => _GroupchatlistState();
 }
 
-class _ChatListState extends State<ChatList> {
+class _GroupchatlistState extends State<Groupchatlist> {
   final ChatsListController controller = Get.put(ChatsListController());
   ProfileController profileController=Get.put(ProfileController());
 
   @override
   void initState() {
     super.initState();
-    controller.Chatlist();
+    controller.GroupList();
     profileController.GetProfile();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        body:  GetBuilder<ChatsListController>(
+      body:  GetBuilder<ChatsListController>(
           id: "updateChats",
           builder: (context) {
             return ListView.builder(
               padding: const EdgeInsets.symmetric(vertical: 10),
-              itemCount: controller.chatListModel?.chatList?.length ?? 0,
+              itemCount: controller.groupChatList?.groupList?.length ?? 0,
               itemBuilder: (context, index) {
-                final chat = controller.chatListModel?.chatList?[index];
+                final chat = controller.groupChatList?.groupList?[index];
 
                 if (chat == null) return const SizedBox.shrink();
 
                 return _buildChatCard(
-                  context,
-                  name: chat.userName ?? "",
-                  currentuserid: profileController.profile?.userId.toString()??"",
-                  lastMessage: chat.lastMessage ?? "",
+                    context,
+                    name: chat.groupName ?? "",
+                    Groupid: chat.groupId.toString(),
+                   id: chat.groupId.toString(),
+                  currentUser: profileController.profile?.userId.toString()??"",
+                  imageUrl: chat.groupImage?[0].toString()??"",
+                  lastMessage: chat.lastMessage.toString(),
                   time: _formatTime(chat.lastMessageTime),
-                  conversationid:chat.conversationId.toString(),
-                  status: chat.isOnline ?? false ? "Active" : "Expired",
-                  imageUrl: chat.profileImage?.isNotEmpty == true
-                      ? '${Apis.ip}${chat.profileImage![0]}'
-                      : "",
-                  unreadMessages: chat.unreadMessages.toString(),
-                  id: chat.userID.toString()
+                  status:"Expired",
+                  unreadMessages: chat.unreadMessages.toString()
+
                 );
               },
             );
           }
-        ),
+      ),
     );
   }
 
@@ -87,13 +87,15 @@ class _ChatListState extends State<ChatList> {
     }
   }
 
+ 
+
   Widget _buildChatCard(
       BuildContext context, {
         required String imageUrl,
         required String id,
         required String unreadMessages,
-        required String conversationid,
-        required String currentuserid,
+        required String Groupid,
+        required String currentUser,
         required String name,
         required String lastMessage,
         required String time,
@@ -110,7 +112,7 @@ class _ChatListState extends State<ChatList> {
                 radius: 28,
                 backgroundColor: Colors.grey[300],
                 backgroundImage: imageUrl.isNotEmpty
-                    ? NetworkImage(imageUrl)
+                    ? NetworkImage("${Apis.ip} ${imageUrl}")
                     : null, // Set only if available
                 child: imageUrl.isEmpty
                     ? const Icon(Icons.person, size: 28, color: Colors.white)
@@ -186,10 +188,11 @@ class _ChatListState extends State<ChatList> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) =>
-                    ChatScreen(providerName: name, conversationId: conversationid,reciverid: id,currentuserid: currentuserid,image: imageUrl,)
-                    // ChatScreen(providerName: name, receiverId: id,Image:imageUrl ,Online:status ,CurrentUser: "17",Conversationid:conversationid ,),
-                // ChatScreen(Image: imageUrl, Name: name, converstaionid: conversationid, isonline: status,reciverid: id,)
+                  builder: (context) =>
+                      Groupmessagescreen(providerName: name, conversationId: Groupid, currentuserid: currentUser, reciverid: id, image: imageUrl)
+                      // Groupmessagescreen(Image: "", Name: name, converstaionid: Groupid, isonline: "Active", reciverid: "17")
+                  // ChatScreen(providerName: name, receiverId: id,Image:imageUrl ,Online:status ,CurrentUser: "17",Conversationid:conversationid ,),
+                  // ChatScreen(Image: imageUrl, Name: name, converstaionid: conversationid, isonline: status,reciverid: id,)
               ),
             );
           },

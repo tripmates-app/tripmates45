@@ -30,7 +30,7 @@ void main() async {
   // 🟢 Initialize Hive
   await Hive.initFlutter();
   await Hive.openBox('chatBox'); // Open the chat box for storing messages
-
+  await Hive.openBox('deleted_messages');
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
         systemNavigationBarColor: Colors.transparent,

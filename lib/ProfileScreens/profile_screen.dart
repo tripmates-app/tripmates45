@@ -4,8 +4,11 @@ import 'package:get/get.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:tripmates/Constants/button.dart';
 import 'package:tripmates/Constants/utils.dart';
+import 'package:tripmates/Controller/ProfileController.dart';
 import 'package:tripmates/ProfileScreens/profileview_screen.dart';
 import 'package:tripmates/ProfileScreens/visibilityandpreferences_screen.dart';
+
+import '../Constants/Apis_Constants.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -15,10 +18,18 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
+  ProfileController controller=Get.put(ProfileController());
   double percent = 0.53;
   _percentage(percent) {
     var value = percent * 100;
     return ('$value%');
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    controller.GetProfile();
   }
 
   @override
@@ -34,99 +45,104 @@ class _ProfileScreenState extends State<ProfileScreen> {
               onTap: (){
                 Get.to(()=> ProfileViewScreen());
               },
-              child: Card(
-                elevation: 3,
-                color: Theme.of(context).cardColor,
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.only(
-                        bottomLeft: Radius.circular(19),
-                        bottomRight: Radius.circular(19))),
-                child: Padding(
-                  padding: const EdgeInsets.only(left: 14, right: 20, bottom: 13),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Row(
-                          children: [
-                            Stack(
-                              alignment: Alignment.bottomCenter,
+              child: GetBuilder<ProfileController>(
+                id: "Profile_update",
+                builder: (_) {
+                  return Card(
+                    elevation: 3,
+                    color: Theme.of(context).cardColor,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.only(
+                            bottomLeft: Radius.circular(19),
+                            bottomRight: Radius.circular(19))),
+                    child: Padding(
+                      padding: const EdgeInsets.only(left: 14, right: 20, bottom: 13),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Row(
                               children: [
-                                Padding(
-                                  padding: const EdgeInsets.all(10.0),
-                                  child: CircularPercentIndicator(
-                                    radius: 49.0,
-                                    lineWidth: 5.0,
-                                    percent: percent,
-                                    progressBorderColor: Color(0xff4F78DA),
-                                    center: CircleAvatar(
-                                      radius: 43,
-                                      backgroundImage: AssetImage(
-                                        'assets/Group 48096083.png',
+                                Stack(
+                                  alignment: Alignment.bottomCenter,
+                                  children: [
+                                    Padding(
+                                      padding: const EdgeInsets.all(10.0),
+                                      child: CircularPercentIndicator(
+                                        radius: 49.0,
+                                        lineWidth: 5.0,
+                                        percent: percent,
+                                        progressBorderColor: Color(0xff4F78DA),
+                                        center: CircleAvatar(
+                                          radius: 43,
+                                          backgroundImage: NetworkImage(
+                                            '${Apis.ip}${controller.profile?.profile?.images?[0].toString()}',
+                                          ),
+                                        ),
+                                        progressColor: Color(0xff4F78DA),
                                       ),
                                     ),
-                                    progressColor: Color(0xff4F78DA),
-                                  ),
+                                    Container(
+                                      decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          color: Color(0xff4F78DA)),
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(10.0),
+                                        child: Center(
+                                            child: Text(
+                                          _percentage(percent),
+                                          style: TextStyle(
+                                              fontSize: 9,
+                                              fontWeight: FontWeight.bold,
+                                              color: whiteColor),
+                                        )),
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                                Container(
-                                  decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: Color(0xff4F78DA)),
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(10.0),
-                                    child: Center(
-                                        child: Text(
-                                      _percentage(percent),
-                                      style: TextStyle(
-                                          fontSize: 9,
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        '${controller.profile?.userName.toString()}, ${controller.profile?.profile?.age.toString()}, ${controller.profile?.profile?.gender.toString()}',
+                                        style: TextStyle(
+                                          fontSize: 16,
                                           fontWeight: FontWeight.bold,
-                                          color: whiteColor),
-                                    )),
+                                        ),
+                                      ),
+                                      Text(
+                                        '@AliKhan',
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          color: Theme.of(context).indicatorColor,
+                                        ),
+                                      ),
+                                      Text(
+                                        'Complete your profile ',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: Color(0xff4F78DA),
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
+                                SizedBox(
+                                  width: 33,
+                                ),
+                                SvgPicture.asset(
+                                  'assets/Group 48095973.svg',
+                                  height: 21,
+                                  color: Theme.of(context).primaryColor,
+                                )
                               ],
                             ),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Muhammad Ali Khan, 24, Male',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  Text(
-                                    '@AliKhan',
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      color: Theme.of(context).indicatorColor,
-                                    ),
-                                  ),
-                                  Text(
-                                    'Complete your profile ',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: Color(0xff4F78DA),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            SizedBox(
-                              width: 33,
-                            ),
-                            SvgPicture.asset(
-                              'assets/Group 48095973.svg',
-                              height: 21,
-                              color: Theme.of(context).primaryColor,
-                            )
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                ),
+                    ),
+                  );
+                }
               ),
             ),
             SizedBox(

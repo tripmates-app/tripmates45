@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
+import 'package:tripmates/ChatScreens/GroupChatList.dart';
 
 import 'package:tripmates/Constants/custom_appbar.dart';
 import 'package:tripmates/Constants/utils.dart';
@@ -199,7 +200,7 @@ class _TabbarScreenState extends State<TabbarScreen>
           children: [
             ChatList(),
             ChatList(),
-            ChatList(),
+            Groupchatlist(),
           ],
         ),
       ),

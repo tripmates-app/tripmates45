@@ -1,7 +1,7 @@
 class MessageModel {
   final int id;
   final int senderId;
-  final int conversationId;
+  final int? conversationId;
   final int? groupId;
   final String message;
   final DateTime createdAt;
@@ -11,7 +11,7 @@ class MessageModel {
   MessageModel({
     required this.id,
     required this.senderId,
-    required this.conversationId,
+    this.conversationId,
     this.groupId,
     required this.message,
     required this.createdAt,

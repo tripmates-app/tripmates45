@@ -3,7 +3,7 @@
 class Apis{
 
 // ip
-static String ip="http://192.168.18.28:3001";
+static String ip="http://192.168.203.87:3001";
 // BaseUrl
 static String baseurl="$ip/api";
 
@@ -76,6 +76,8 @@ static String baseurl="$ip/api";
 //..........................Chats....................................
   static String StartConverstaion="$baseurl/message/send";
   static String GetChatsList="$baseurl/message/cheatlist";
+  static String grouplist="$baseurl/message/grouplist";
+  static String Markasread="$baseurl/message/markAsRead";
 
 
 

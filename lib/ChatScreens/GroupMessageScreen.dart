@@ -3,17 +3,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:tripmates/Constants/Apis_Constants.dart';
 import '../Constants/utils.dart';
 import '../Repository/ChatRespository.dart';
 
-class ChatScreen extends StatefulWidget {
+class Groupmessagescreen extends StatefulWidget {
   final String providerName;
   final String currentuserid;
   final String image;
   final String reciverid;
   final String conversationId;
 
-  const ChatScreen({
+  const Groupmessagescreen({
     Key? key,
     required this.providerName,
     required this.conversationId,
@@ -23,16 +24,17 @@ class ChatScreen extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _ChatScreenState createState() => _ChatScreenState();
+  _GroupmessagescreenState createState() => _GroupmessagescreenState();
 }
 
-class _ChatScreenState extends State<ChatScreen> {
+class _GroupmessagescreenState extends State<Groupmessagescreen> {
   final TextEditingController _messageController = TextEditingController();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final List<Map<String, dynamic>> _pendingMessages = [];
   final Box _deletedMessagesBox = Hive.box('deleted_messages');
   List<String> _selectedMessages = [];
   bool _isSelecting = false;
+  bool _isDeletingAll = false;
 
   @override
   void initState() {
@@ -75,7 +77,7 @@ class _ChatScreenState extends State<ChatScreen> {
               children: [
                 CircleAvatar(
                   radius: 25,
-                  backgroundImage: NetworkImage(widget.image),
+                  backgroundImage: NetworkImage("${Apis.ip}${widget.image}"),
                 ),
                 Padding(
                   padding: const EdgeInsets.all(2.0),
@@ -103,10 +105,15 @@ class _ChatScreenState extends State<ChatScreen> {
           ],
         ),
         actions: [
-          if (_isSelecting)
+          if (_isSelecting && !_isDeletingAll)
             IconButton(
               icon: const Icon(Icons.delete),
               onPressed: _deleteSelectedMessages,
+            ),
+          if (_isSelecting && _isDeletingAll)
+            IconButton(
+              icon: const Icon(Icons.delete_forever),
+              onPressed: _confirmDeleteAllMessages,
             ),
           if (_isSelecting)
             IconButton(
@@ -138,10 +145,33 @@ class _ChatScreenState extends State<ChatScreen> {
       ),
       body: Column(
         children: [
+          if (_isSelecting)
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  ElevatedButton(
+                    onPressed: () {
+                      setState(() {
+                        _isDeletingAll = !_isDeletingAll;
+                      });
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _isDeletingAll ? Colors.blue : Colors.grey,
+                    ),
+                    child: Text(
+                      _isDeletingAll ? 'Deleting All Messages' : 'Deleting Only Mine',
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
               stream: _firestore
-                  .collection('chats')
+                  .collection('groupChats')
                   .doc(widget.conversationId)
                   .collection('messages')
                   .orderBy('timestamp', descending: true)
@@ -198,8 +228,11 @@ class _ChatScreenState extends State<ChatScreen> {
                         message: message,
                         isSentByMe: isCurrentUser,
                         isTemp: isPending,
+                        senderName: isCurrentUser ? 'You' : message['senderName'] ?? 'Unknown',
+                        showSenderName: !isCurrentUser,
                         isSelected: isSelected,
                         isSelecting: _isSelecting,
+                        isDeletingAll: _isDeletingAll,
                         onDelete: () => _deleteMessage(message),
                       ),
                     );
@@ -232,6 +265,7 @@ class _ChatScreenState extends State<ChatScreen> {
         _selectedMessages.remove(messageId);
         if (_selectedMessages.isEmpty) {
           _isSelecting = false;
+          _isDeletingAll = false;
         }
       } else {
         _selectedMessages.add(messageId);
@@ -243,6 +277,7 @@ class _ChatScreenState extends State<ChatScreen> {
     setState(() {
       _selectedMessages.clear();
       _isSelecting = false;
+      _isDeletingAll = false;
     });
   }
 
@@ -253,6 +288,7 @@ class _ChatScreenState extends State<ChatScreen> {
       _selectedMessages.remove(messageId);
       if (_selectedMessages.isEmpty) {
         _isSelecting = false;
+        _isDeletingAll = false;
       }
     });
   }
@@ -264,6 +300,7 @@ class _ChatScreenState extends State<ChatScreen> {
     setState(() {
       _selectedMessages.clear();
       _isSelecting = false;
+      _isDeletingAll = false;
     });
   }
 
@@ -281,7 +318,7 @@ class _ChatScreenState extends State<ChatScreen> {
           TextButton(
             onPressed: () {
               Navigator.pop(context);
-              _confirmDeleteAllMessages();
+              _prepareDeleteAllMessages();
             },
             child: const Text('Delete All'),
           ),
@@ -290,11 +327,18 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
+  void _prepareDeleteAllMessages() {
+    setState(() {
+      _isSelecting = true;
+      _isDeletingAll = true;
+    });
+  }
+
   Future<void> _confirmDeleteAllMessages() async {
     try {
       // Get all message IDs from Firestore
       final snapshot = await _firestore
-          .collection('chats')
+          .collection('groupChats')
           .doc(widget.conversationId)
           .collection('messages')
           .get();
@@ -305,7 +349,7 @@ class _ChatScreenState extends State<ChatScreen> {
         deletions['${widget.currentuserid}_${doc.id}'] = true;
       }
 
-      // Perform all deletions in one operation
+      // Perform all deletions in one transaction
       await _deletedMessagesBox.putAll(deletions);
 
       // Also delete any pending messages
@@ -313,6 +357,7 @@ class _ChatScreenState extends State<ChatScreen> {
         _pendingMessages.clear();
         _selectedMessages.clear();
         _isSelecting = false;
+        _isDeletingAll = false;
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -394,6 +439,7 @@ class _ChatScreenState extends State<ChatScreen> {
     Map<String, dynamic> tempMessage = {
       'message': messageText,
       'senderId': widget.currentuserid,
+      'senderName': 'You',
       'timestamp': Timestamp.now(),
       'tempId': tempId,
     };
@@ -405,7 +451,7 @@ class _ChatScreenState extends State<ChatScreen> {
     _messageController.clear();
 
     try {
-      await Chatrespository().StartConversation(widget.reciverid, messageText);
+      await Chatrespository().StartConversation2(widget.conversationId, messageText);
     } catch (e) {
       print("❌ Error sending message: $e");
       setState(() {
@@ -419,8 +465,11 @@ class MessageBubble extends StatelessWidget {
   final Map<String, dynamic> message;
   final bool isSentByMe;
   final bool isTemp;
+  final String senderName;
+  final bool showSenderName;
   final bool isSelected;
   final bool isSelecting;
+  final bool isDeletingAll;
   final VoidCallback onDelete;
 
   const MessageBubble({
@@ -428,8 +477,11 @@ class MessageBubble extends StatelessWidget {
     required this.message,
     required this.isSentByMe,
     required this.isTemp,
+    required this.senderName,
+    required this.showSenderName,
     this.isSelected = false,
     this.isSelecting = false,
+    this.isDeletingAll = false,
     required this.onDelete,
   }) : super(key: key);
 
@@ -453,9 +505,21 @@ class MessageBubble extends StatelessWidget {
             borderRadius: BorderRadius.circular(10),
           ),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if (isSelecting && isSentByMe)
+              if (showSenderName)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 4),
+                  child: Text(
+                    senderName,
+                    style: TextStyle(
+                      color: isSentByMe ? Colors.white : Colors.black,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+              if (isSelecting && (isSentByMe || isDeletingAll))
                 Row(
                   children: [
                     Checkbox(
