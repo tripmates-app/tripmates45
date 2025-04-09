@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
@@ -9,6 +11,8 @@ import 'package:tripmates/Constants/utils.dart';
 import 'package:tripmates/Mates_Screens/mateswhoisaround_screen.dart';
 
 import '../Controller/MatesController.dart';
+import '../Home_Screen/userinfo_screen.dart';
+import '../Repository/ChatRespository.dart';
 
 class MatesmatchesScreen extends StatefulWidget {
   const MatesmatchesScreen({super.key});
@@ -20,6 +24,7 @@ class MatesmatchesScreen extends StatefulWidget {
 class _MatesmatchesScreenState extends State<MatesmatchesScreen> {
   Matescontroller matescontroller = Get.put(Matescontroller());
   int selectedIndex = 2;
+  List<File> _selectedImageFiles = [];
 
   List sortMatches = [
     'Recently Active',
@@ -38,7 +43,7 @@ class _MatesmatchesScreenState extends State<MatesmatchesScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: PreferredSize(
-          preferredSize: Size.fromHeight(75), child: Customappbar()),
+          preferredSize: Size.fromHeight(75), child: CustomAppbar()),
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -138,146 +143,163 @@ class _MatesmatchesScreenState extends State<MatesmatchesScreen> {
                             .toString();
                         final verified = matescontroller
                             .matesMatchModel?.mates?[index].verified;
+                        final id = matescontroller
+                            .matesMatchModel?.mates?[index].userID;
 
                         return Padding(
                           padding: const EdgeInsets.only(
                               left: 20, right: 20, top: 15),
-                          child: Container(
-                            height: 110,
-                            width: double.infinity,
-                            decoration: BoxDecoration(
-                                border: GradientBoxBorder(
-                                    gradient: toptobottomgradient, width: 2.1),
-                                borderRadius: BorderRadius.circular(10),
-                                gradient: LinearGradient(colors: [
-                                  Color(0xff4F78DA),
-                                  Color(0xff000000).withOpacity(0.49),
-                                ])),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Row(
-                                  children: [
-                                    SizedBox(
-                                      width: 10,
-                                    ),
-                                    CircleAvatar(
-                                      radius: 33,
-                                      backgroundImage:
-                                          NetworkImage('${Apis.ip}${image}'),
-                                    ),
-                                    SizedBox(
-                                      width: 10,
-                                    ),
-                                    Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Row(
-                                          children: [
-                                            Container(
-                                              height: 17,
-                                              decoration: BoxDecoration(
-                                                  borderRadius:
-                                                      BorderRadius.circular(30),
-                                                  color: whiteColor),
-                                              child: Padding(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                        horizontal: 5),
-                                                child: Center(
-                                                    child: Text(
-                                                  '${interest}',
-                                                  style: TextStyle(
-                                                      fontSize: 9,
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                      color: Color(0xff930000)),
-                                                )),
+                          child: InkWell(
+                            onTap: (){
+                              Get.to(()=> UserinfoScreen(id: id.toString(),));
+                            },
+                            child: Container(
+                              height: 110,
+                              width: double.infinity,
+                              decoration: BoxDecoration(
+                                  border: GradientBoxBorder(
+                                      gradient: toptobottomgradient, width: 2.1),
+                                  borderRadius: BorderRadius.circular(10),
+                                  gradient: LinearGradient(colors: [
+                                    Color(0xff4F78DA),
+                                    Color(0xff000000).withOpacity(0.49),
+                                  ])),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Row(
+                                    children: [
+                                      SizedBox(
+                                        width: 10,
+                                      ),
+                                      CircleAvatar(
+                                        radius: 33,
+                                        backgroundImage:
+                                            NetworkImage('${Apis.ip}${image}'),
+                                      ),
+                                      SizedBox(
+                                        width: 10,
+                                      ),
+                                      Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Row(
+                                            children: [
+                                              Container(
+                                                height: 17,
+                                                decoration: BoxDecoration(
+                                                    borderRadius:
+                                                        BorderRadius.circular(30),
+                                                    color: whiteColor),
+                                                child: Padding(
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                          horizontal: 5),
+                                                  child: Center(
+                                                      child: Text(
+                                                    '${interest}',
+                                                    style: TextStyle(
+                                                        fontSize: 9,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        color: Color(0xff930000)),
+                                                  )),
+                                                ),
+                                              ),
+                                              Text(
+                                                online == true
+                                                    ? "      Online"
+                                                    : '      Offline',
+                                                style: TextStyle(
+                                                    fontSize: 9,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Color(0xff339003)),
+                                              )
+                                            ],
+                                          ),
+                                          SizedBox(
+                                            height: 5,
+                                          ),
+                                          Row(
+                                            children: [
+                                              Text(
+                                                '${name}, ${age}',
+                                                style: TextStyle(
+                                                    fontSize: 14,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: whiteColor),
+                                              ),
+                                              SizedBox(
+                                                width: 7,
+                                              ),
+                                              verified == true
+                                                  ? SvgPicture.asset(
+                                                      'assets/verify.svg',
+                                                      height: 19,
+                                                    )
+                                                  : SizedBox(),
+                                            ],
+                                          ),
+                                          SizedBox(
+                                            height: 7,
+                                          ),
+                                          Container(
+                                            height: 27,
+                                            decoration: BoxDecoration(
+                                              borderRadius:
+                                                  BorderRadius.circular(30),
+                                              color: Color(0xff339003),
+                                            ),
+                                            child: Padding(
+                                              padding: const EdgeInsets.symmetric(
+                                                  horizontal: 10),
+                                              child: Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.center,
+                                                children: [
+                                                  SvgPicture.asset(
+                                                    'assets/Vector (3).svg',
+                                                    height: 13,
+                                                  ),
+                                                  SizedBox(
+                                                    width: 5,
+                                                  ),
+                                                  Text(
+                                                    'Traveler',
+                                                    style: TextStyle(
+                                                        fontSize: 11,
+                                                        fontWeight:
+                                                            FontWeight.w500,
+                                                        color: whiteColor),
+                                                  ),
+                                                ],
                                               ),
                                             ),
-                                            Text(
-                                              online == true
-                                                  ? "      Online"
-                                                  : '      Offline',
-                                              style: TextStyle(
-                                                  fontSize: 9,
-                                                  fontWeight: FontWeight.bold,
-                                                  color: Color(0xff339003)),
-                                            )
-                                          ],
-                                        ),
-                                        SizedBox(
-                                          height: 5,
-                                        ),
-                                        Row(
-                                          children: [
-                                            Text(
-                                              '${name}, ${age}',
-                                              style: TextStyle(
-                                                  fontSize: 14,
-                                                  fontWeight: FontWeight.bold,
-                                                  color: whiteColor),
-                                            ),
-                                            SizedBox(
-                                              width: 7,
-                                            ),
-                                            verified == true
-                                                ? SvgPicture.asset(
-                                                    'assets/verify.svg',
-                                                    height: 19,
-                                                  )
-                                                : SizedBox(),
-                                          ],
-                                        ),
-                                        SizedBox(
-                                          height: 7,
-                                        ),
-                                        Container(
-                                          height: 27,
-                                          decoration: BoxDecoration(
-                                            borderRadius:
-                                                BorderRadius.circular(30),
-                                            color: Color(0xff339003),
                                           ),
-                                          child: Padding(
-                                            padding: const EdgeInsets.symmetric(
-                                                horizontal: 10),
-                                            child: Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.center,
-                                              children: [
-                                                SvgPicture.asset(
-                                                  'assets/Vector (3).svg',
-                                                  height: 13,
-                                                ),
-                                                SizedBox(
-                                                  width: 5,
-                                                ),
-                                                Text(
-                                                  'Traveler',
-                                                  style: TextStyle(
-                                                      fontSize: 11,
-                                                      fontWeight:
-                                                          FontWeight.w500,
-                                                      color: whiteColor),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        ),
-                                      ],
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                  InkWell(
+                                    onTap: ()async{
+                                      await Chatrespository().StartConversation(
+                                        matescontroller.matesMatchModel?.mates?[index].userID.toString()??"",
+                                        "Hey Mate", // Use the saved messageText, not controller.text
+                                        _selectedImageFiles,
+                                      );
+                                      Get.to(()=> BottomBar(screen: 3));
+                                    },
+                                    child: Padding(
+                                      padding: const EdgeInsets.only(right: 15),
+                                      child: SvgPicture.asset(
+                                          'assets/Group 48096085.svg'),
                                     ),
-                                  ],
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.only(right: 15),
-                                  child: SvgPicture.asset(
-                                      'assets/Group 48096085.svg'),
-                                ),
-                              ],
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         );

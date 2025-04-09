@@ -96,7 +96,7 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
                             image: DecorationImage(
                                 fit: BoxFit.cover,
                                 image: NetworkImage(
-                                    '${Apis.ip}${profileController.profile?.profile?.coverImage.toString()}'))),
+                                    '${Apis.ip}${profileController.profile?.profile?.coverImage?[0].toString()}'))),
                       ),
                     ),
                     Padding(

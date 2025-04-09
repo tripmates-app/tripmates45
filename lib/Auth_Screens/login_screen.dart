@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:gradient_progress_indicator/widget/gradient_progress_indicator_widget.dart';
 import 'package:top_snackbar_flutter/custom_snack_bar.dart';
 import 'package:top_snackbar_flutter/top_snack_bar.dart';
 import 'package:tripmates/Auth_Screens/register_screen.dart';
 import 'package:tripmates/Constants/all_textfields.dart';
 import 'package:tripmates/Constants/bottombar.dart';
 import 'package:tripmates/Constants/button.dart';
+import 'package:tripmates/Controller/ProfileController.dart';
+import 'package:tripmates/ProfileScreens/ProfileSetupScreen.dart';
 
 import '../Controller/AuthenticationController.dart';
 
@@ -19,6 +22,8 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   AuthenticationController authenticationController =
       Get.put(AuthenticationController());
+  ProfileController profileController=Get.put(ProfileController());
+  bool loading=false;
 
   @override
   Widget build(BuildContext context) {
@@ -134,11 +139,34 @@ class _LoginScreenState extends State<LoginScreen> {
                               SizedBox(
                                 height: 30,
                               ),
-                              Button(
+                            loading? Center(
+                              child: GradientProgressIndicator(
+                                radius: 17,
+                                duration: 3,
+                                strokeWidth: 5,
+                                backgroundColor: Colors.white,
+                                gradientStops: const [
+                                  0.2,
+                                  0.7,
+                                  0.3,
+                                  0.3,
+                                ],
+                                gradientColors: const [
+                                  Color(0xff4F78DA),
+                                  Color(0xff339003),
+                                  Color(0xff4F78DA),
+                                  Colors.white
+                                ],
+                                child: Text(''),
+                              ),
+                            )  :Button(
                                 borderRadius: BorderRadius.circular(70),
                                 height: 64,
                                 width: double.infinity,
                                 onTap: () async {
+                                  setState(() {
+                                    loading=true;
+                                  });
                                   if (authenticationController
                                           .loginemail.text.isNotEmpty ||
                                       authenticationController
@@ -150,18 +178,35 @@ class _LoginScreenState extends State<LoginScreen> {
                                             authenticationController
                                                 .loginpassword.text);
                                     if (login) {
+                                      setState(() {
+                                        loading=false;
+                                      });
+                                      final profile= await profileController.GetProfile();
+                                      if(profile){
+
+                                        Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                                builder: (context) =>
+                                                    BottomBar(screen: 0)));
+                                      }else{
+                                        Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                                builder: (context) =>
+                                                   ProfileSetupScreen()));
+                                      }
                                       showTopSnackBar(
                                         Overlay.of(context),
                                         CustomSnackBar.success(
                                           message: "User Login Successfull.",
                                         ),
                                       );
-                                      Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                              builder: (context) =>
-                                                  BottomBar(screen: 0)));
+
                                     } else {
+                                      setState(() {
+                                        loading=false;
+                                      });
                                       showTopSnackBar(
                                         Overlay.of(context),
                                         CustomSnackBar.error(
@@ -219,6 +264,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         InkWell(
                           onTap: () async {
                             authenticationController.GoogleAuth();
+
                           },
                           child: Container(
                             height: 50,

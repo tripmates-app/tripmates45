@@ -16,8 +16,8 @@ class _ActivitiesMapScreenState extends State<ActivitiesMapScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: PreferredSize(
-          preferredSize: Size.fromHeight(75), child: Customappbar()),
+      // appBar: PreferredSize(
+      //     preferredSize: Size.fromHeight(75), child: CustomAppbar()),
       body: Padding(
         padding: const EdgeInsets.only(top: 20),
         child: Column(

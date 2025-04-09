@@ -30,6 +30,7 @@ class _ImageUploadScreenState extends State<ImageUploadScreen> {
       // Implement upload logic here
       if(upload){
         await controller.GetGalleryList();
+        await controller.GetProfile();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("Post uploaded successfully!")),
         );

@@ -14,9 +14,9 @@ class Chatrespository{
 
   Future<Map<String, dynamic>?> StartConversation(
       String receiverId,
-      String message, {
-        List<File>? imageFiles, // Optional list of images
-      }) async {
+      String message,
+       List<File>? imageFiles,
+      ) async {
     SharedPreferences pref = await SharedPreferences.getInstance();
     final token = pref.getString("token");
     print("The token is: $token");

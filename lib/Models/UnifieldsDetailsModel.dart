@@ -8,13 +8,14 @@ class UnifiedEventModel {
   double? latitude;
   double? longitude;
   String? description;
-  String? dateTime; // Only available in ActivityDetailsModel
-  String? totalTime; // Only available in ActivityDetailsModel
+  String? dateTime; // Only for Activity
+  String? totalTime; // Only for Activity
   String? eventType;
-  List<String>? images; // Handles both List<String> and single String
+  List<String>? images; // List of images from both
   int? remainingSlots;
   int? totalSlots;
   List<UnifiedAttendee>? attendees;
+  UnifiedBusinessProfile? businessProfile; // Only for Event
 
   UnifiedEventModel({
     this.id,
@@ -30,6 +31,7 @@ class UnifiedEventModel {
     this.remainingSlots,
     this.totalSlots,
     this.attendees,
+    this.businessProfile,
   });
 
   /// Convert ActivityDetailsModel into UnifiedEventModel
@@ -48,6 +50,7 @@ class UnifiedEventModel {
       remainingSlots: model.data?.remainingSlots,
       totalSlots: model.data?.totalSlots,
       attendees: model.data?.attendees?.map((e) => UnifiedAttendee.fromActivity(e)).toList(),
+      businessProfile: null, // No business profile in Activity
     );
   }
 
@@ -65,6 +68,9 @@ class UnifiedEventModel {
       remainingSlots: model.data?.remainingSlots,
       totalSlots: model.data?.totalSlots,
       attendees: model.data?.attendees?.map((e) => UnifiedAttendee.fromEvent(e)).toList(),
+      businessProfile: model.data?.businessProfile != null
+          ? UnifiedBusinessProfile.fromEvent(model.data!.businessProfile!)
+          : null,
     );
   }
 }
@@ -77,23 +83,55 @@ class UnifiedAttendee {
 
   UnifiedAttendee({this.userId, this.name, this.images, this.guests});
 
-  /// Convert Attendees from ActivityDetailsModel
+  /// Convert from ActivityDetailsModel attendee
   factory UnifiedAttendee.fromActivity(Attendees attendee) {
     return UnifiedAttendee(
       userId: attendee.userId,
       name: attendee.name,
       images: attendee.images,
-      guests: attendee.guests, // Only in ActivityDetailsModel
+      guests: attendee.guests,
     );
   }
 
-  /// Convert Attendee from EventDetailsModel
+  /// Convert from EventDetailsModel attendee
   factory UnifiedAttendee.fromEvent(Attendee attendee) {
     return UnifiedAttendee(
       userId: attendee.userId,
       name: attendee.name,
       images: attendee.images,
-      guests: null, // Not available in EventDetailsModel
+      guests: null,
+    );
+  }
+}
+
+class UnifiedBusinessProfile {
+  int? id;
+  String? name;
+  String? logo;
+  String? description;
+  int? totalEventsCreated;
+  int? totalFollowers;
+  bool? isFollowedByCurrentUser;
+
+  UnifiedBusinessProfile({
+    this.id,
+    this.name,
+    this.logo,
+    this.description,
+    this.totalEventsCreated,
+    this.totalFollowers,
+    this.isFollowedByCurrentUser
+  });
+
+  factory UnifiedBusinessProfile.fromEvent(BusinessProfile profile) {
+    return UnifiedBusinessProfile(
+      id: profile.id,
+      name: profile.name,
+      logo: profile.logo,
+      description: profile.description,
+      totalEventsCreated: profile.totalEventsCreated,
+      totalFollowers: profile.totalFollowers,
+      isFollowedByCurrentUser: profile.isFollowedByCurrentUser
     );
   }
 }

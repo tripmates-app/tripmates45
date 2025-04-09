@@ -2,6 +2,9 @@
 import "dart:convert";
 import "dart:io";
 
+import "package:flutter/material.dart";
+import "package:get/get.dart";
+import "package:get/get_core/src/get_main.dart";
 import "package:http/http.dart" as http;
 import "package:shared_preferences/shared_preferences.dart";
 
@@ -94,7 +97,6 @@ class Activityrepository{
 
 //...........................Create Activity.................................
 
-
   Future<dynamic> CreateActivity({
     required File image,
     required String name,
@@ -117,6 +119,7 @@ class Activityrepository{
       var request = http.MultipartRequest("POST", uri);
 
       request.headers["Authorization"] = "Bearer $token";
+      // request.headers["Authorization"] = "Bearer $token";
 
       // ✅ Adding form fields
       request.fields["name"] = name;
@@ -124,7 +127,7 @@ class Activityrepository{
       request.fields["latitude"] = Latitude;
       request.fields["description"] = description;
       request.fields["totalSlots"] = totalslots;
-      // request.fields["time"] = time;
+      request.fields["slots"] = totalslots;
       request.fields["date_time"] = date;
       request.fields["location"] = Location;
       request.fields["total_time"] = totaltime;
@@ -522,10 +525,26 @@ class Activityrepository{
       print("API response : ${response.body}");
 
       if (response.statusCode == 200 || response.statusCode == 201) {
+        Get.snackbar(
+          "Success",
+          "Data fetched successfully",
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+          snackPosition: SnackPosition.BOTTOM,
+          duration: Duration(seconds: 2),
+        );
         return jsonDecode(response.body);
       } else {
         print("API Failed Status code : ${response.statusCode}");
         print("API Failed response : ${response.body}");
+        Get.snackbar(
+          "Error",
+          "Failed to fetch data. (${response.body})",
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+          snackPosition: SnackPosition.BOTTOM,
+          duration: Duration(seconds: 2),
+        );
         throw Exception("Failed to fetch data. Status Code: ${response.statusCode}");
       }
     } catch (e) {
@@ -680,6 +699,178 @@ class Activityrepository{
 
 
 
+
+//......................................UpComming Activities  ................................
+
+  Future<dynamic> GetUpcomingActivites() async {
+    try {
+      SharedPreferences pref = await SharedPreferences.getInstance();
+      final token = pref.getString("token");
+      print("The token is : $token");
+
+      Map<String,dynamic> queryParams={
+        "filterType":"all"
+      };
+
+      // Constructing the URI with query parameters
+      Uri uri = Uri.parse(Apis.UpcomingActivity);
+      print("The URl is : $uri");
+
+      final response = await http.get(
+        uri,
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $token",
+        },
+      );
+
+      print("Status code : ${response.statusCode}");
+      print("API response : ${response.body}");
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return jsonDecode(response.body);
+      } else {
+        print("API Failed Status code : ${response.statusCode}");
+        print("API Failed response : ${response.body}");
+        throw Exception("Failed to fetch data. Status Code: ${response.statusCode}");
+      }
+    } catch (e) {
+      print("Error in GET: $e");
+      return null;
+    }
+  }
+
+//....................................Follow BusinessPage.........................
+  Future<Map<String, dynamic>> FollowBusiness(String bussinessid) async {
+    SharedPreferences pref = await SharedPreferences.getInstance();
+    final token = pref.getString("token");
+    print("The token is : $token");
+
+    try {
+      final response = await http.post(
+        Uri.parse(Apis.followBusiness+"/$bussinessid"),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $token", // Add if required
+        },
+
+      );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return jsonDecode(response.body); // Return response as Map
+      } else {
+        return {
+          "success": false,
+          "statusCode": response.statusCode,
+          "message": "Error: ${response.body}",
+        };
+      }
+    } catch (e) {
+      return {
+        "success": false,
+        "message": "Exception: $e",
+      };
+    }
+  }
+
+  //.......................................UnFollow Busniesspage........................
+
+  Future<Map<String, dynamic>> unFollowBusiness(String bussinessid) async {
+    SharedPreferences pref = await SharedPreferences.getInstance();
+    final token = pref.getString("token");
+    print("The token is : $token");
+
+    try {
+      final response = await http.post(
+        Uri.parse(Apis.unfollowbusiness+"/$bussinessid"),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $token", // Add if required
+        },
+
+      );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return jsonDecode(response.body); // Return response as Map
+      } else {
+        return {
+          "success": false,
+          "statusCode": response.statusCode,
+          "message": "Error: ${response.body}",
+        };
+      }
+    } catch (e) {
+      return {
+        "success": false,
+        "message": "Exception: $e",
+      };
+    }
+  }
+//.........................................EventClicks................................
+  Future<Map<String, dynamic>> CLickFollowBusiness(String eventid) async {
+    SharedPreferences pref = await SharedPreferences.getInstance();
+    final token = pref.getString("token");
+    print("The token is : $token");
+    Map<String, dynamic> requestData = {
+      "event_id": eventid,
+    };
+    try {
+      final response = await http.put(
+        Uri.parse(Apis.eventClicks+"/$eventid/click"),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $token", // Add if required
+        },
+        body: jsonEncode(requestData),
+      );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return jsonDecode(response.body); // Return response as Map
+      } else {
+        return {
+          "success": false,
+          "statusCode": response.statusCode,
+          "message": "Error: ${response.body}",
+        };
+      }
+    } catch (e) {
+      return {
+        "success": false,
+        "message": "Exception: $e",
+      };
+    }
+  }
+
+ //........................................EventViews...............................
+  Future<Map<String, dynamic>> ViewFollowBusiness(String eventid) async {
+    SharedPreferences pref = await SharedPreferences.getInstance();
+    final token = pref.getString("token");
+    print("The token is : $token");
+    Map<String, dynamic> requestData = {
+      "event_id": eventid,
+    };
+    try {
+      final response = await http.put(
+        Uri.parse(Apis.eventview+"/$eventid/view"),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $token", // Add if required
+        },
+        body: jsonEncode(requestData),
+      );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return jsonDecode(response.body); // Return response as Map
+      } else {
+        return {
+          "success": false,
+          "statusCode": response.statusCode,
+          "message": "Error: ${response.body}",
+        };
+      }
+    } catch (e) {
+      return {
+        "success": false,
+        "message": "Exception: $e",
+      };
+    }
+  }
 
 
 

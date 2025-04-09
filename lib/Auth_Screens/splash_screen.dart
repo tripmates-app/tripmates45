@@ -1,10 +1,14 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:get/get.dart';
 import 'package:gradient_progress_indicator/widget/gradient_progress_indicator_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tripmates/Auth_Screens/login_screen.dart';
 import 'package:tripmates/Constants/bottombar.dart';
+
+import '../Controller/ProfileController.dart';
+import '../ProfileScreens/ProfileSetupScreen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -14,6 +18,7 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
+  ProfileController profileController=Get.put(ProfileController());
   Timer? timer;
 
   @override
@@ -25,8 +30,24 @@ class _SplashScreenState extends State<SplashScreen> {
         Navigator.push(
             context, MaterialPageRoute(builder: (context) => LoginScreen()));
       } else {
-        Navigator.push(context,
-            MaterialPageRoute(builder: (context) => BottomBar(screen: 0)));
+
+        final profile= await profileController.GetProfile();
+        if(profile){
+
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) =>
+                      BottomBar(screen: 0)));
+        }else{
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) =>
+                      ProfileSetupScreen()));
+        }
+
+
       }
     });
 

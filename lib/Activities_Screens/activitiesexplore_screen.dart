@@ -42,7 +42,7 @@ class _ActivitiesexploreScreenState extends State<ActivitiesexploreScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: PreferredSize(
-          preferredSize: Size.fromHeight(75), child: Customappbar()),
+          preferredSize: Size.fromHeight(75), child: CustomAppbar()),
       body: Padding(
         padding: const EdgeInsets.only(top: 20),
         child: Column(
@@ -198,6 +198,7 @@ class _ActivitiesexploreScreenState extends State<ActivitiesexploreScreen> {
                       final id = acitivitycontroller.activityListModel?.data?[index].activityId?.toString() ?? "0";
                       final eventid = acitivitycontroller.activityListModel?.data?[index].eventId?.toString() ?? "0";
                       final join=acitivitycontroller.activityListModel?.data?[index].userJoined;
+                      final creatorimage=acitivitycontroller.activityListModel?.data?[index].creatorImage[0].toString();
                         return Container(
                           width: double.infinity,
                           height: 410,
@@ -254,7 +255,7 @@ class _ActivitiesexploreScreenState extends State<ActivitiesexploreScreen> {
                                           CircleAvatar(
                                             radius: 33,
                                             backgroundImage:
-                                            AssetImage('assets/woman-doing-yoga-garden.png'),
+                                            NetworkImage(creatorimage.toString()),
                                           ),
                                           SizedBox(
                                             width: 10,

@@ -4,7 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:gradient_borders/box_borders/gradient_box_border.dart';
+import 'package:gradient_progress_indicator/widget/gradient_progress_indicator_widget.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:top_snackbar_flutter/custom_snack_bar.dart';
+import 'package:top_snackbar_flutter/top_snack_bar.dart';
 import 'package:tripmates/Constants/Apis_Constants.dart';
 import 'package:tripmates/Constants/button.dart';
 import 'package:tripmates/Constants/utils.dart';
@@ -42,7 +45,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   File? _selectedCoverImage;
   File? _selectedProfileImage;
-
+ bool loading=false;
   final ImagePicker _picker = ImagePicker();
 
   // Function to select a cover image
@@ -125,9 +128,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               padding: const EdgeInsets.only(top: 66, left: 20),
               child: Row(
                 children: [
-                  Icon(
-                    Icons.arrow_back,
-                    color: Theme.of(context).primaryColor,
+                  IconButton(
+                    onPressed:(){
+                      Get.back();
+                    },
+                    icon: Icon(
+                      Icons.arrow_back,
+                      color: Theme.of(context).primaryColor,
+                    ),
                   ),
                   SizedBox(
                     width: 30,
@@ -477,10 +485,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                   selectedIndex1 = index;
                                   if(selectedIndex==0){
                                     selectedstatus="Traveler";
-                                    print("selected gender : s=$selectedstatus");
+                                    print("selected status : s=$selectedstatus");
                                   }else{
                                     selectedGender="Local";
-                                    print("selected gender : s=$selectedstatus");
+                                    print("selected status : s=$selectedstatus");
 
                                   }
                                 });
@@ -724,13 +732,51 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         width: 30,
                       ),
                       Expanded(
-                        child: Button(
+                        child:loading?  GradientProgressIndicator(
+                          radius: 21,
+                          duration: 3,
+                          strokeWidth: 7,
+                          backgroundColor: Colors.white,
+                          gradientStops: const [
+                            0.2,
+                            0.7,
+                            0.3,
+                            0.3,
+                          ],
+                          gradientColors: const [
+                            Color(0xff007BFD),
+                            Color(0xff20235A),
+                            Color(0xff007BFD),
+                            Colors.white
+                          ],
+                          child: Text(''),
+                        ) :Button(
                           borderRadius: BorderRadius.circular(10),
                           height: 60,
                           width: double.infinity,
                           onTap: () async{
-                            await profileController.editProfile(age: profileController.profile?.profile?.age.toString()??"18", gender: selectedGender.toString(), status: selectedstatus.toString(), bio: Bio.text, interests: _taglisthobbies, Language: _taglist, longitude: "-89", latitude: "90", userName: username.text,coverImage: _selectedCoverImage,image: _selectedProfileImage);
+                            setState(() {
+                              loading=true;
+                            });
+                         final update=   await profileController.editProfile(age: profileController.profile?.profile?.age.toString()??"18", gender: selectedGender.toString(), status: selectedstatus.toString(), bio: Bio.text, interests: _taglisthobbies, Language: _taglist, longitude: "-89", latitude: "90", userName: username.text,coverImage: _selectedCoverImage,image: _selectedProfileImage);
+                            if(update){
 
+                              await profileController.GetProfile();
+                              setState(() {
+                                loading=false;
+                              });
+                              Get.back();
+                            }else{
+                              setState(() {
+                                loading=false;
+                              });
+                              showTopSnackBar(
+                                Overlay.of(context),
+                                CustomSnackBar.error(
+                                  message: "Failed to update Profile.",
+                                ),
+                              );
+                            }
                           },
                           child: const Center(
                               child: Text(

@@ -30,6 +30,8 @@ class _EventsdetailsScreenState extends State<EventsdetailsScreen> {
     super.initState();
     if(widget.event){
       acitivitycontroller.EventDetails(widget.id);
+      acitivitycontroller.ViewFollowBusiness(widget.id);
+      acitivitycontroller.CLickFollowBusiness(widget.id);
     }else{
       acitivitycontroller.ActivitieDetails(widget.id);
     }
@@ -365,7 +367,7 @@ class _EventsdetailsScreenState extends State<EventsdetailsScreen> {
                                         color: Color(0xffF1F1F1), width: 3)),
                                 child: Padding(
                                   padding: const EdgeInsets.all(9.0),
-                                  child: Image.asset('assets/logo (2).png'),
+                                  child: Image.network('${Apis.ip}${acitivitycontroller.eventModel?.businessProfile?.logo.toString()}'),
                                 ),
                               ),
                               SizedBox(
@@ -375,14 +377,14 @@ class _EventsdetailsScreenState extends State<EventsdetailsScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    'Fluttrr',
+                                    '${acitivitycontroller.eventModel?.businessProfile?.name.toString()}',
                                     style: TextStyle(
                                       fontSize: 17,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
                                   Text(
-                                    '5 Past Events | 10K followers',
+                                    '${acitivitycontroller.eventModel?.businessProfile?.totalEventsCreated.toString()} Past Events | ${acitivitycontroller.eventModel?.businessProfile?.totalFollowers.toString()} followers',
                                     style: TextStyle(
                                         fontSize: 12,
                                         fontWeight: FontWeight.w600,
@@ -391,7 +393,7 @@ class _EventsdetailsScreenState extends State<EventsdetailsScreen> {
                                   Container(
                                     width: 203,
                                     child: Text(
-                                      ' Start your day with a rejuvenating yoga session surrounded by nature.',
+                                      '${acitivitycontroller.eventModel?.businessProfile?.description.toString()}',
                                       style: TextStyle(
                                           fontSize: 12,
                                           fontWeight: FontWeight.w400,
@@ -405,22 +407,44 @@ class _EventsdetailsScreenState extends State<EventsdetailsScreen> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.end,
                             children: [
-                              Container(
-                                height: 33,
-                                width: 110,
-                                decoration: BoxDecoration(
+                              InkWell(
+                                onTap: () async{
+                                  final follow=acitivitycontroller.eventModel?.businessProfile?.isFollowedByCurrentUser ??false;
+
+                                  if(follow){
+                                    await acitivitycontroller.unFollowBusiness(acitivitycontroller.eventModel?.businessProfile?.id.toString()??"");
+                                   await acitivitycontroller.EventDetails(widget.id);
+
+                                  }else{
+                                   await acitivitycontroller.FollowBusiness(acitivitycontroller.eventModel?.businessProfile?.id.toString()??"");
+                                   await acitivitycontroller.EventDetails(widget.id);
+                                  }
+                                },
+                                child: Container(
+                                  height: 33,
+                                  width: 110,
+                                  decoration: BoxDecoration(
                                     borderRadius: BorderRadius.circular(10),
-                                    color: lightBlue),
-                                child: Center(
-                                  child: Text(
-                                    'Follow Up',
-                                    style: TextStyle(
+                                    color: acitivitycontroller.eventModel?.businessProfile?.isFollowedByCurrentUser == true
+                                        ? Colors.green
+                                        : lightBlue,
+
+                                  ),
+                                  child: Center(
+                                    child: Text(
+                                      acitivitycontroller.eventModel?.businessProfile?.isFollowedByCurrentUser == true
+                                          ? 'Following'
+                                          : 'Follow',
+                                      style: TextStyle(
                                         fontSize: 13,
                                         fontWeight: FontWeight.w700,
-                                        color: whiteColor),
+                                        color: whiteColor,
+                                      ),
+                                    ),
                                   ),
                                 ),
                               ),
+
                               SizedBox(
                                 width: 17,
                               ),

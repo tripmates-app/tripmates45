@@ -5,7 +5,11 @@ class TextFields extends StatelessWidget {
   final hintText;
   final suffix;
   final TextEditingController controller;
-  const TextFields({super.key, @required this.hintText, this.suffix, required this.controller});
+  const TextFields({
+    super.key,
+    @required this.hintText,
+    this.suffix,  required this.controller,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -19,9 +23,10 @@ class TextFields extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(0.7),
         child: TextFormField(
-          controller: controller,
+          // controller: controller,
           style: TextStyle(fontSize: 16, color: Theme.of(context).primaryColor),
           cursorHeight: 23,
+          controller: controller,
           decoration: InputDecoration(
             filled: true,
             fillColor: Theme.of(context).cardColor,
@@ -58,7 +63,8 @@ class TextFields_Passwords extends StatefulWidget {
 
   const TextFields_Passwords({
     super.key,
-    @required this.hintText, required this.controller,
+    @required this.hintText,
+    required this.controller,
   });
 
   @override
@@ -73,7 +79,6 @@ class _TextFields_PasswordsState extends State<TextFields_Passwords> {
   }
 
   bool? _passwordVisible;
-
 
   _TextFields_PasswordsState();
   Widget build(BuildContext context) {
@@ -126,6 +131,61 @@ class _TextFields_PasswordsState extends State<TextFields_Passwords> {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+
+
+class Business_TextField extends StatelessWidget {
+  final String hintText;
+  final Widget? suffix;
+  final int? maxLines;
+  final TextEditingController controller;
+  final String? Function(String?)? validator;
+  final TextInputType? keyboardType;
+
+  const Business_TextField({
+    super.key,
+    required this.hintText,
+    this.suffix,
+    this.maxLines,
+    required this.controller,
+    this.validator,
+    this.keyboardType,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return TextFormField(
+      controller: controller,
+      maxLines: maxLines,
+      keyboardType: keyboardType,
+      style: TextStyle(fontSize: 16, color: Theme.of(context).primaryColor),
+      cursorHeight: 23,
+      validator: validator,
+      decoration: InputDecoration(
+        filled: true,
+        fillColor: const Color(0xffF1F1F1),
+        enabled: true,
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(7),
+          borderSide: BorderSide.none,
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(7),
+          borderSide: BorderSide.none,
+        ),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 20,
+          vertical: 19,
+        ),
+        border: InputBorder.none,
+        hintText: hintText,
+        hintStyle: const TextStyle(fontSize: 14, color: Color(0xff7B7575)),
+        suffixIcon: suffix,
+        errorMaxLines: 2,
       ),
     );
   }

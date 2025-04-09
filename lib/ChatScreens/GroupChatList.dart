@@ -48,8 +48,11 @@ class _GroupchatlistState extends State<Groupchatlist> {
                     Groupid: chat.groupId.toString(),
                    id: chat.groupId.toString(),
                   currentUser: profileController.profile?.userId.toString()??"",
-                  imageUrl: chat.groupImage?[0].toString()??"",
-                  lastMessage: chat.lastMessage.toString(),
+                    imageUrl: (chat.groupImage != null && chat.groupImage!.isNotEmpty)
+                        ? chat.groupImage![0].toString()
+                        : ""
+                    ,
+                  lastMessage: chat.lastMessage.toString() ,
                   time: _formatTime(chat.lastMessageTime),
                   status:"Expired",
                   unreadMessages: chat.unreadMessages.toString()

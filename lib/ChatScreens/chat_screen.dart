@@ -1,13 +1,18 @@
+import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:tripmates/Constants/Apis_Constants.dart';
+
 import '../Constants/utils.dart';
 import '../Repository/ChatRespository.dart';
 
 class ChatScreen extends StatefulWidget {
   final String providerName;
+  final bool online;
   final String currentuserid;
   final String image;
   final String reciverid;
@@ -19,7 +24,7 @@ class ChatScreen extends StatefulWidget {
     required this.conversationId,
     required this.currentuserid,
     required this.reciverid,
-    required this.image,
+    required this.image, required this.online,
   }) : super(key: key);
 
   @override
@@ -29,10 +34,14 @@ class ChatScreen extends StatefulWidget {
 class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _messageController = TextEditingController();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  // final FirebaseStorage _storage = FirebaseStorage.instance;
   final List<Map<String, dynamic>> _pendingMessages = [];
   final Box _deletedMessagesBox = Hive.box('deleted_messages');
   List<String> _selectedMessages = [];
   bool _isSelecting = false;
+  final ImagePicker _picker = ImagePicker();
+  List<XFile> _selectedImageFiles = [];
+  bool _isUploading = false;
 
   @override
   void initState() {
@@ -79,12 +88,12 @@ class _ChatScreenState extends State<ChatScreen> {
                 ),
                 Padding(
                   padding: const EdgeInsets.all(2.0),
-                  child: Container(
+                  child:widget.online==true ? Container(
                     height: 13,
                     width: 13,
                     decoration: const BoxDecoration(
                         shape: BoxShape.circle, color: Colors.white),
-                    child: const Center(
+                    child:  Center(
                       child: SizedBox(
                         height: 11,
                         width: 11,
@@ -94,7 +103,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         ),
                       ),
                     ),
-                  ),
+                  ):SizedBox(),
                 )
               ],
             ),
@@ -138,6 +147,52 @@ class _ChatScreenState extends State<ChatScreen> {
       ),
       body: Column(
         children: [
+          // Selected images preview
+          if (_selectedImageFiles.isNotEmpty)
+            Container(
+              height: 120,
+              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: _selectedImageFiles.length,
+                itemBuilder: (context, index) {
+                  return Stack(
+                    children: [
+                      Container(
+                        width: 100,
+                        height: 100,
+                        margin: const EdgeInsets.symmetric(horizontal: 4),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(8),
+                          image: DecorationImage(
+                            image: FileImage(File(_selectedImageFiles[index].path)),
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        top: 4,
+                        right: 8,
+                        child: GestureDetector(
+                          onTap: () => _removeSelectedImage(index),
+                          child: Container(
+                            decoration: const BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.black54,
+                            ),
+                            child: const Icon(
+                              Icons.close,
+                              size: 20,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ),
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
               stream: _firestore
@@ -162,7 +217,6 @@ class _ChatScreenState extends State<ChatScreen> {
                     .where((message) => !_isMessageDeleted(message['messageId']))
                     .toList();
 
-                // Mark messages as seen when they arrive
                 WidgetsBinding.instance.addPostFrameCallback((_) {
                   _markMessagesAsSeen(firestoreMessages);
                 });
@@ -192,6 +246,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     final isCurrentUser = message['senderId'] == widget.currentuserid;
                     final isSelected = _selectedMessages.contains(message['messageId'] ?? message['tempId']);
                     final isSeen = message['seen'] ?? false;
+                    final images = message['images'] as List<dynamic>?;
 
                     return GestureDetector(
                       onLongPress: () => _handleLongPress(message),
@@ -208,6 +263,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         isSelecting: _isSelecting,
                         isSeen: isSeen,
                         onDelete: () => _deleteMessage(message),
+                        images: images?.cast<String>() ?? [],
                       ),
                     );
                   },
@@ -215,6 +271,8 @@ class _ChatScreenState extends State<ChatScreen> {
               },
             ),
           ),
+          // if (_isUploading)
+          //   const LinearProgressIndicator(),
           _buildInputSection(),
         ],
       ),
@@ -327,23 +385,19 @@ class _ChatScreenState extends State<ChatScreen> {
 
   Future<void> _confirmDeleteAllMessages() async {
     try {
-      // Get all message IDs from Firestore
       final snapshot = await _firestore
           .collection('chats')
           .doc(widget.conversationId)
           .collection('messages')
           .get();
 
-      // Mark all messages as deleted in Hive
       final Map<String, bool> deletions = {};
       for (var doc in snapshot.docs) {
         deletions['${widget.currentuserid}_${doc.id}'] = true;
       }
 
-      // Perform all deletions in one operation
       await _deletedMessagesBox.putAll(deletions);
 
-      // Also delete any pending messages
       setState(() {
         _pendingMessages.clear();
         _selectedMessages.clear();
@@ -364,96 +418,188 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget _buildInputSection() {
     return Padding(
       padding: const EdgeInsets.only(left: 15, bottom: 10),
-      child: Row(
+      child: Column(
         children: [
-          Expanded(
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(10),
-                color: const Color(0xffF1F1F1),
+          Row(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.photo_library),
+                onPressed: _pickImages,
               ),
-              child: Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(left: 10),
-                    child: SvgPicture.asset(
-                      'assets/Group 48095945.svg',
-                      height: 30,
-                      color: Theme.of(context).primaryColor,
-                    ),
+              IconButton(
+                icon: const Icon(Icons.camera_alt),
+                onPressed: _takePhoto,
+              ),
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(10),
+                    color: const Color(0xffF1F1F1),
                   ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: TextField(
-                      controller: _messageController,
-                      style: const TextStyle(color: Colors.black),
-                      decoration: const InputDecoration(
-                        hintText: 'Message',
-                        hintStyle: TextStyle(color: Colors.grey),
-                        border: InputBorder.none,
+                  child: Row(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(left: 10),
+                        child: SvgPicture.asset(
+                          'assets/Group 48095945.svg',
+                          height: 30,
+                          color: Theme.of(context).primaryColor,
+                        ),
                       ),
-                    ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: TextField(
+                          controller: _messageController,
+                          style: const TextStyle(color: Colors.black),
+                          decoration: const InputDecoration(
+                            hintText: 'Message',
+                            hintStyle: TextStyle(color: Colors.grey),
+                            border: InputBorder.none,
+                          ),
+                        ),
+                      ),
+                      SvgPicture.asset(
+                        'assets/Group 48095946.svg',
+                        height: 30,
+                        color: Theme.of(context).primaryColor,
+                      ),
+                    ],
                   ),
-                  SvgPicture.asset(
-                    'assets/Group 48095946.svg',
+                ),
+              ),
+              InkWell(
+                onTap: sendMessage,
+                child: Padding(
+                  padding: const EdgeInsets.only(right: 20, left: 15),
+                  child: SvgPicture.asset(
+                    'assets/sen.svg',
                     height: 30,
                     color: Theme.of(context).primaryColor,
                   ),
-                ],
+                ),
               ),
-            ),
-          ),
-          InkWell(
-            onTap: sendMessage,
-            child: Padding(
-              padding: const EdgeInsets.only(right: 20, left: 15),
-              child: SvgPicture.asset(
-                'assets/sen.svg',
-                height: 30,
-                color: Theme.of(context).primaryColor,
-              ),
-            ),
+            ],
           ),
         ],
       ),
     );
   }
 
+  Future<void> _pickImages() async {
+    try {
+      final List<XFile>? pickedFiles = await _picker.pickMultiImage(
+        maxWidth: 1000,
+        maxHeight: 1000,
+        imageQuality: 85,
+      );
+
+      if (pickedFiles != null && pickedFiles.isNotEmpty) {
+        setState(() {
+          _selectedImageFiles.addAll(pickedFiles);
+        });
+      }
+    } catch (e) {
+      print("❌ Error picking images: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to pick images')),
+      );
+    }
+  }
+
+  Future<void> _takePhoto() async {
+    try {
+      final XFile? photo = await _picker.pickImage(
+        source: ImageSource.camera,
+        maxWidth: 1000,
+        maxHeight: 1000,
+        imageQuality: 85,
+      );
+
+      if (photo != null) {
+        setState(() {
+          _selectedImageFiles.add(photo);
+        });
+      }
+    } catch (e) {
+      print("❌ Error taking photo: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to take photo')),
+      );
+    }
+  }
+
+  void _removeSelectedImage(int index) {
+    setState(() {
+      _selectedImageFiles.removeAt(index);
+    });
+  }
+
   Future<void> sendMessage() async {
     String messageText = _messageController.text.trim();
-    if (messageText.isEmpty) return;
-
-    String tempId = DateTime.now().millisecondsSinceEpoch.toString();
-
-    Map<String, dynamic> tempMessage = {
-      'message': messageText,
-      'senderId': widget.currentuserid,
-      'receiverId': widget.reciverid,
-      'timestamp': Timestamp.now(),
-      'seen': false,
-      'tempId': tempId,
-    };
+    if (messageText.isEmpty && _selectedImageFiles.isEmpty) return;
 
     setState(() {
-      _pendingMessages.add(tempMessage);
+      _isUploading = true;
     });
 
-    _messageController.clear();
-
     try {
+      List<File> imageFiles = _selectedImageFiles
+          .map((xfile) => File(xfile.path))
+          .toList();
+
+      String tempId = DateTime.now().millisecondsSinceEpoch.toString();
+
+      // Create temp message before sending to show immediately
+      Map<String, dynamic> tempMessage = {
+        'message': messageText,
+        'senderId': widget.currentuserid,
+        'receiverId': widget.reciverid,
+        'timestamp': Timestamp.now(),
+        'seen': false,
+        'tempId': tempId,
+        'images': imageFiles.isNotEmpty
+            ? ["uploading..."] // Placeholder for images
+            : [],
+      };
+
+      setState(() {
+        _pendingMessages.add(tempMessage);
+        _messageController.clear();
+        _selectedImageFiles.clear();
+      });
+
+      // Send message through your API
       await Chatrespository().StartConversation(
         widget.reciverid,
-        messageText,
-        // isSeen: false,
+        messageText, // Use the saved messageText, not controller.text
+        imageFiles,
       );
+
+      // Update Firestore if needed
+      await _firestore
+          .collection('chats')
+          .doc(widget.conversationId)
+          .update({'lastMessageTime': Timestamp.now()});
+
     } catch (e) {
       print("❌ Error sending message: $e");
+      // ScaffoldMessenger.of(context).showSnackBar(
+      //   SnackBar(content: Text('Failed to send message: ${e.toString()}')),
+      // );
+
+      // Remove the pending message if it fails
+      // setState(() {
+      //   _pendingMessages.removeWhere((msg) => msg['tempId'] == tempId);
+      // });
+    } finally {
       setState(() {
-        _pendingMessages.removeWhere((msg) => msg['tempId'] == tempId);
+        _isUploading = false;
       });
     }
   }
+
+
 }
 
 class MessageBubble extends StatelessWidget {
@@ -464,6 +610,7 @@ class MessageBubble extends StatelessWidget {
   final bool isSelecting;
   final bool isSeen;
   final VoidCallback onDelete;
+  final List<String> images;
 
   const MessageBubble({
     Key? key,
@@ -474,6 +621,7 @@ class MessageBubble extends StatelessWidget {
     this.isSelecting = false,
     required this.onDelete,
     required this.isSeen,
+    required this.images,
   }) : super(key: key);
 
   @override
@@ -486,6 +634,9 @@ class MessageBubble extends StatelessWidget {
       child: Align(
         alignment: isSentByMe ? Alignment.centerRight : Alignment.centerLeft,
         child: Container(
+          constraints: BoxConstraints(
+            maxWidth: MediaQuery.of(context).size.width * 0.75,
+          ),
           padding: const EdgeInsets.all(10),
           margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
           decoration: BoxDecoration(
@@ -506,18 +657,12 @@ class MessageBubble extends StatelessWidget {
                       onChanged: (value) => onDelete(),
                     ),
                     Expanded(
-                      child: Text(
-                        message['message'],
-                        style: const TextStyle(color: Colors.black),
-                      ),
+                      child: _buildMessageContent(),
                     ),
                   ],
                 )
               else
-                Text(
-                  message['message'],
-                  style: const TextStyle(color: Colors.black),
-                ),
+                _buildMessageContent(),
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -555,6 +700,62 @@ class MessageBubble extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildMessageContent() {
+    final hasImages = images.isNotEmpty;
+    final hasText = message['message'] != null && message['message'].toString().isNotEmpty;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (hasImages)
+          Column(
+            children: images.map((imageUrl) {
+              return Container(
+                margin: const EdgeInsets.only(bottom: 8),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Image.network(
+                    "${Apis.ip}${imageUrl}",
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                    loadingBuilder: (context, child, loadingProgress) {
+                      if (loadingProgress == null) return child;
+                      return Container(
+                        height: 200,
+                        color: Colors.grey[300],
+                        child: Center(
+                          child: CircularProgressIndicator(
+                            value: loadingProgress.expectedTotalBytes != null
+                                ? loadingProgress.cumulativeBytesLoaded /
+                                loadingProgress.expectedTotalBytes!
+                                : null,
+                          ),
+                        ),
+                      );
+                    },
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        height: 200,
+                        color: Colors.grey[300],
+                        child: const Center(
+                          child: Icon(Icons.broken_image),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        if (hasText)
+          Text(
+            message['message'],
+            style: const TextStyle(color: Colors.black),
+          ),
+      ],
     );
   }
 

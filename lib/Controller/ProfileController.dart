@@ -3,8 +3,14 @@
 
 import 'dart:io';
 
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
+import 'package:tripmates/Constants/listdata.dart';
+import 'package:tripmates/Models/BadgesModel/BadgesModel.dart';
+import 'package:tripmates/Models/BadgesModel/LeaderBoardModel.dart';
 import 'package:tripmates/Models/GalleryDataModel.dart';
+import 'package:tripmates/Models/Notifications/NotificationsModel.dart';
 import 'package:tripmates/Models/ProfileModel.dart';
 import 'package:tripmates/Models/TotalActivityCount.dart';
 import 'package:tripmates/Models/TotalJoinedActivitesModel.dart';
@@ -23,6 +29,9 @@ class ProfileController extends GetxController{
   TotalMatchCount?totalMatchCount;
   JoinedActivitesModel?joinedActivitesModel;
   TotalMatchListModel?totalMatchListModel;
+  BadgesModel?badgesModel;
+LeaderBoardModel?leaderBoardModel;
+NotificationsModel?notificationsModel;
 
 
 //.............................Get the profile...........................
@@ -191,8 +200,184 @@ class ProfileController extends GetxController{
     }
   }
 
+//.......................................Update Location ..........................
+
+  Future<Position?> getCurrentLocation() async {
+    bool serviceEnabled;
+    LocationPermission permission;
+
+    // Check if location services are enabled
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      print('Location services are disabled.');
+      return null;
+    }
+
+    // Check location permissions
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        print('Location permission denied.');
+        return null;
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      print('Location permissions are permanently denied.');
+      return null;
+    }
+
+    // Get current location
+    Position position = await Geolocator.getCurrentPosition(
+      desiredAccuracy: LocationAccuracy.high,
+    );
+
+    // Send location to API
+    await ProfileRepository().UpdateLocation(position.latitude, position.longitude);
+
+    return position;
+  }
 
 
+//....................................Update FCM Token ...............................
+
+
+  Future<void> updateFcmToken() async {
+    try {
+      // Get the FCM token
+      String? fcmToken = await FirebaseMessaging.instance.getToken();
+
+      if (fcmToken != null) {
+        // Send FCM token to the API
+        await ProfileRepository().UpdateFCMToken(fcmToken);
+        print("FCM Token updated successfully: $fcmToken");
+      } else {
+        print("Failed to retrieve FCM token.");
+      }
+    } catch (e) {
+      print("Error updating FCM token: $e");
+    }
+  }
+
+
+//........................Setup Profile Screen ............................
+
+  Future<bool> setupProfile({
+
+    required int age,
+    required String gender,
+    required String status,
+    required String username,
+    required String bio,
+    required String country,
+    required List<String> interests, // String Array
+    required File image, // Single profile image
+    required File coverImage, // Cover image
+    required double latitude,
+    required double longitude,
+    required List<String> languages, // String Array
+    required String location,
+  }) async {
+    try {
+     final ok= await ProfileRepository().setupProfile( age: age, gender: gender,username:username , status: status, bio: bio, country: country, interests: interests, image: image, coverImage: coverImage, latitude: latitude, longitude: longitude, languages: languages, location: location);
+     if(ok){
+       return true;
+     }else{
+       return false;
+     }
+    } catch (e) {
+      print("Error in profile setup: $e");
+      return false;
+    }
+  }
+
+
+//...............................Badges.......................
+
+  Future<bool> Badgeslist() async {
+    final activity = await ProfileRepository().BadgesList();
+    print("Profile Fatch is : $activity");
+    if (activity == null) {
+      return false;
+    } else {
+      badgesModel = BadgesModel.fromJson(activity);
+      update(["Activity_update"]);
+      return true;
+    }
+  }
+
+//...............................Badges Claimed.......................
+
+  Future<bool> BadgesClaimed(String id) async {
+    final activity = await ProfileRepository().ClaimedBadges(id);
+    print("Profile Fatch is : $activity");
+    if (activity == null) {
+      return false;
+    } else {
+      // badgesModel = BadgesModel.fromJson(activity);
+      update(["Activity_update"]);
+      return true;
+    }
+  }
+
+ //...................... leaderBoard...........................
+
+
+
+  Future<bool> LeaderBoard() async {
+    final activity = await ProfileRepository().LeaderBoard();
+    print("Profile Fatch is : $activity");
+    if (activity == null) {
+      return false;
+    } else {
+      leaderBoardModel = LeaderBoardModel.fromJson(activity);
+      update(["Activity_update"]);
+      return true;
+    }
+  }
+
+  //...................... Notifications...........................
+
+  Future<bool> Notifications() async {
+    final activity = await ProfileRepository().Notifications();
+    print("Profile Fatch is : $activity");
+    if (activity == null) {
+      return false;
+    } else {
+      notificationsModel = NotificationsModel.fromJson(activity);
+      update(["Activity_update"]);
+      return true;
+    }
+  }
+
+  //...................... Online...........................
+
+  Future<bool> Online() async {
+    final activity = await ProfileRepository().Online();
+    print("Profile Fatch is : $activity");
+    if (activity == null) {
+      return false;
+    } else {
+      // notificationsModel = NotificationsModel.fromJson(activity);
+      update(["Activity_update"]);
+      return true;
+    }
+  }
+
+  //...................... Offline...........................
+
+  Future<bool> Offline() async {
+    final activity = await ProfileRepository().Offline();
+    print("Profile Fatch is : $activity");
+    if (activity == null) {
+      return false;
+    } else {
+      // notificationsModel = NotificationsModel.fromJson(activity);
+      update(["Activity_update"]);
+      return true;
+    }
+  }
 
 
 

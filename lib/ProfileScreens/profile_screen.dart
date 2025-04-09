@@ -2,13 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tripmates/Constants/button.dart';
 import 'package:tripmates/Constants/utils.dart';
+import 'package:tripmates/Controller/BussinessPageController.dart';
 import 'package:tripmates/Controller/ProfileController.dart';
 import 'package:tripmates/ProfileScreens/profileview_screen.dart';
+import 'package:tripmates/ProfileScreens/settingsandprivacy_screen.dart';
 import 'package:tripmates/ProfileScreens/visibilityandpreferences_screen.dart';
 
+import '../Auth_Screens/login_screen.dart';
+import '../Business_Screens/businesscreateprofile_screen.dart';
+import '../Business_Screens/businessevents_screen.dart';
+import '../Business_Screens/welcome_screen.dart';
 import '../Constants/Apis_Constants.dart';
+import 'badges_screen.dart';
+import 'leaderboard_screen.dart';
+import 'linkedaccounts_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -19,6 +29,7 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   ProfileController controller=Get.put(ProfileController());
+  BusinessController businessController=Get.put(BusinessController());
   double percent = 0.53;
   _percentage(percent) {
     var value = percent * 100;
@@ -30,6 +41,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     // TODO: implement initState
     super.initState();
     controller.GetProfile();
+    businessController.BusinessStatus();
   }
 
   @override
@@ -235,57 +247,82 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       thickness: 2.3,
                       color: Color(0xffF1F1F1),
                     ),
-                    ListTile(
-                      leading: SvgPicture.asset('assets/SET.svg'),
-                      trailing: const Icon(Icons.arrow_forward_ios),
-                      title: Text(
-                        "Setting & privacy",
-                        style: TextStyle(fontWeight: FontWeight.bold),
+                    InkWell(
+                      onTap: (){
+                        Get.to(()=> SettingsandprivacyScreen());
+                      },
+                      child: ListTile(
+                        leading: SvgPicture.asset('assets/SET.svg'),
+                        trailing: const Icon(Icons.arrow_forward_ios),
+                        title: Text(
+                          "Setting & privacy",
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
                       ),
                     ),
                     Divider(
                       thickness: 2.3,
                       color: Color(0xffF1F1F1),
                     ),
-                    ListTile(
-                      leading: SvgPicture.asset(
-                        'assets/bar.svg',
-                        height: 17,
-                      ),
-                      trailing: const Icon(Icons.arrow_forward_ios),
-                      title: Text(
-                        "Business Features",
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                    Divider(
-                      thickness: 2.3,
-                      color: Color(0xffF1F1F1),
-                    ),
-                    ListTile(
-                      leading: SvgPicture.asset(
-                        'assets/ach.svg',
-                        height: 14,
-                      ),
-                      trailing: const Icon(Icons.arrow_forward_ios),
-                      title: Text(
-                        "Linked Accounts",
-                        style: TextStyle(fontWeight: FontWeight.bold),
+                    InkWell(
+                      onTap: ()async{
+                        if(businessController.businessstatusModel?.hasBusinessProfile==true){
+                          Get.to(()=> BusinesseventsScreen());
+                        }else{
+                          Get.to(()=> WelcomeScreen());
+                        }
+
+                      },
+                      child: ListTile(
+                        leading: SvgPicture.asset(
+                          'assets/bar.svg',
+                          height: 17,
+                        ),
+                        trailing: const Icon(Icons.arrow_forward_ios),
+                        title: Text(
+                          "Business Features",
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
                       ),
                     ),
                     Divider(
                       thickness: 2.3,
                       color: Color(0xffF1F1F1),
                     ),
-                    ListTile(
-                      leading: SvgPicture.asset(
-                        'assets/gam.svg',
-                        height: 16,
+                    InkWell(
+                      onTap: (){
+                        Get.to(()=> LinkedaccountsScreen());
+                      },
+                      child: ListTile(
+                        leading: SvgPicture.asset(
+                          'assets/ach.svg',
+                          height: 14,
+                        ),
+                        trailing: const Icon(Icons.arrow_forward_ios),
+                        title: Text(
+                          "Linked Accounts",
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
                       ),
-                      trailing: const Icon(Icons.arrow_forward_ios),
-                      title: Text(
-                        "Achievements & Rewards",
-                        style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    Divider(
+                      thickness: 2.3,
+                      color: Color(0xffF1F1F1),
+                    ),
+                    InkWell(
+                      onTap: (){
+                       Get.to(()=> BadgesScreen());
+                      },
+                      child: ListTile(
+                        leading: SvgPicture.asset(
+                          'assets/gam.svg',
+                          height: 16,
+                        ),
+                        trailing: const Icon(Icons.arrow_forward_ios),
+                        title: Text(
+                          "Achievements & Rewards",
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
                       ),
                     ),
                     Divider(
@@ -310,22 +347,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     SizedBox(
                       height: 60,
                     ),
-                    Container(
-                      height: 49,
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(10),
-                          color: Color(0xffBE3344)),
-                      child: Padding(
-                        padding: const EdgeInsets.only(top: 6),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            SvgPicture.asset(
-                              'assets/Group 48096196.svg',
-                              height: 33,
-                            )
-                          ],
+                    InkWell(
+                      onTap: ()async{
+                        SharedPreferences pref = await SharedPreferences.getInstance();
+                       pref.clear();
+                        Get.offAll(() => LoginScreen());
+                      },
+                      child: Container(
+                        height: 49,
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(10),
+                            color: Color(0xffBE3344)),
+                        child: Padding(
+                          padding: const EdgeInsets.only(top: 6),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              SvgPicture.asset(
+                                'assets/Group 48096196.svg',
+                                height: 33,
+                              )
+                            ],
+                          ),
                         ),
                       ),
                     )

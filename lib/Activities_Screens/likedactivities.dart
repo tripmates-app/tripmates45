@@ -33,8 +33,8 @@ class _LikedactivitiesState extends State<Likedactivities> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: PreferredSize(
-          preferredSize: Size.fromHeight(75), child: Customappbar()),
+      // appBar: PreferredSize(
+      //     preferredSize: Size.fromHeight(75), child: CustomAppbar()),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.only(left: 20, right: 20, top: 20),

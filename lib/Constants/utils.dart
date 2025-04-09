@@ -19,6 +19,7 @@ const toptobottomgradient = LinearGradient(
 // top to bottom gradient
 
 const lefttorightgradient = LinearGradient(
+  begin: Alignment.center,
   colors: [
     Color(0xff007BFD),
     Color(0xff20235A),

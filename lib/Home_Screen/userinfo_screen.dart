@@ -1,11 +1,18 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:gradient_borders/box_borders/gradient_box_border.dart';
+import 'package:gradient_progress_indicator/widget/gradient_progress_indicator_widget.dart';
 import 'package:tripmates/Constants/Apis_Constants.dart';
+import 'package:tripmates/Constants/bottombar.dart';
 import 'package:tripmates/Constants/listdata.dart';
 import 'package:tripmates/Constants/utils.dart';
+import 'package:tripmates/Controller/ChatsListController.dart';
 import 'package:tripmates/Controller/ViewProfileController.dart';
+
+import '../Repository/ChatRespository.dart';
 
 class UserinfoScreen extends StatefulWidget {
   final String id;
@@ -17,6 +24,8 @@ class UserinfoScreen extends StatefulWidget {
 
 class _UserinfoScreenState extends State<UserinfoScreen> {
 Viewprofilecontroller controller = Get.put(Viewprofilecontroller());
+ChatsListController chatsListController=Get.put(ChatsListController());
+bool loading=false;
 
   @override
   void initState() {
@@ -26,13 +35,39 @@ Viewprofilecontroller controller = Get.put(Viewprofilecontroller());
   }
 
   void api()async{
+    setState(() {
+      loading=true;
+    });
    await controller.GetProfileMates(widget.id);
+    setState(() {
+      loading=false;
+    });
   }
+List<File> _selectedImageFiles = [];
+  TextEditingController Message=TextEditingController();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SingleChildScrollView(
+      body:loading ? GradientProgressIndicator(
+        radius: 21,
+        duration: 3,
+        strokeWidth: 7,
+        backgroundColor: Colors.white,
+        gradientStops: const [
+          0.2,
+          0.7,
+          0.3,
+          0.3,
+        ],
+        gradientColors: const [
+          Color(0xff007BFD),
+          Color(0xff20235A),
+          Color(0xff007BFD),
+          Colors.white
+        ],
+        child: Text(''),
+      )   :SingleChildScrollView(
         child: GetBuilder<Viewprofilecontroller>(
           id: "Profile_update",
           builder: (_) {
@@ -507,6 +542,7 @@ Viewprofilecontroller controller = Get.put(Viewprofilecontroller());
                                   child: Padding(
                                     padding: const EdgeInsets.all(0.17),
                                     child: TextFormField(
+                                      controller:Message ,
                                       style: TextStyle(
                                           fontSize: 16,
                                           color: Theme.of(context).primaryColor),
@@ -540,9 +576,19 @@ Viewprofilecontroller controller = Get.put(Viewprofilecontroller());
                               SizedBox(
                                 width: 10,
                               ),
-                              SvgPicture.asset(
-                                'assets/Group 48095829.svg',
-                                height: 61,
+                              InkWell(
+                                onTap: ()async{
+                                  await Chatrespository().StartConversation(
+                                    widget.id,
+                                    Message.text, // Use the saved messageText, not controller.text
+                                    _selectedImageFiles,
+                                  );
+                                  Get.to(()=> BottomBar(screen: 3));
+                                },
+                                child: SvgPicture.asset(
+                                  'assets/Group 48095829.svg',
+                                  height: 61,
+                                ),
                               )
                             ],
                           ),

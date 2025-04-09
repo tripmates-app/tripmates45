@@ -4,18 +4,11 @@ class EventDetailsModel {
 
   EventDetailsModel({this.message, this.data});
 
-  EventDetailsModel.fromJson(Map<String, dynamic> json) {
-    message = json['message'];
-    data = json['data'] != null ? EventData.fromJson(json['data']) : null;
-  }
-
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = {};
-    data['message'] = message;
-    if (this.data != null) {
-      data['data'] = this.data!.toJson();
-    }
-    return data;
+  factory EventDetailsModel.fromJson(Map<String, dynamic> json) {
+    return EventDetailsModel(
+      message: json['message'],
+      data: json['data'] != null ? EventData.fromJson(json['data']) : null,
+    );
   }
 }
 
@@ -31,6 +24,7 @@ class EventData {
   int? remainingSlots;
   int? totalSlots;
   List<Attendee>? attendees;
+  BusinessProfile? businessProfile;
 
   EventData({
     this.eventId,
@@ -44,43 +38,28 @@ class EventData {
     this.remainingSlots,
     this.totalSlots,
     this.attendees,
+    this.businessProfile,
   });
 
-  EventData.fromJson(Map<String, dynamic> json) {
-    eventId = json['event_id'];
-    name = json['name'];
-    location = json['location'];
-    latitude = double.tryParse(json['latitude'] ?? '0');
-    longitude = double.tryParse(json['longitude'] ?? '0');
-    description = json['description'];
-    eventType = json['event_type'];
-    image = json['image'];
-    remainingSlots = json['remaining_slots'];
-    totalSlots = json['total_slots'];
-    if (json['attendees'] != null) {
-      attendees = [];
-      json['attendees'].forEach((v) {
-        attendees!.add(Attendee.fromJson(v));
-      });
-    }
-  }
-
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = {};
-    data['event_id'] = eventId;
-    data['name'] = name;
-    data['location'] = location;
-    data['latitude'] = latitude.toString();
-    data['longitude'] = longitude.toString();
-    data['description'] = description;
-    data['event_type'] = eventType;
-    data['image'] = image;
-    data['remaining_slots'] = remainingSlots;
-    data['total_slots'] = totalSlots;
-    if (attendees != null) {
-      data['attendees'] = attendees!.map((v) => v.toJson()).toList();
-    }
-    return data;
+  factory EventData.fromJson(Map<String, dynamic> json) {
+    return EventData(
+      eventId: json['event_id'],
+      name: json['name'],
+      location: json['location'],
+      latitude: double.tryParse(json['latitude'].toString()),
+      longitude: double.tryParse(json['longitude'].toString()),
+      description: json['description'],
+      eventType: json['event_type'],
+      image: json['image'],
+      remainingSlots: json['remaining_slots'],
+      totalSlots: json['total_slots'],
+      attendees: (json['attendees'] as List<dynamic>?)
+          ?.map((e) => Attendee.fromJson(e))
+          .toList(),
+      businessProfile: json['business_profile'] != null
+          ? BusinessProfile.fromJson(json['business_profile'])
+          : null,
+    );
   }
 }
 
@@ -91,17 +70,45 @@ class Attendee {
 
   Attendee({this.userId, this.name, this.images});
 
-  Attendee.fromJson(Map<String, dynamic> json) {
-    userId = json['user_id'];
-    name = json['name'];
-    images = json['images'] != null ? List<String>.from(json['images']) : [];
+  factory Attendee.fromJson(Map<String, dynamic> json) {
+    return Attendee(
+      userId: json['user_id'],
+      name: json['name'],
+      images: (json['images'] as List<dynamic>?)
+          ?.map((e) => e.toString())
+          .toList(),
+    );
   }
+}
 
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = {};
-    data['user_id'] = userId;
-    data['name'] = name;
-    data['images'] = images;
-    return data;
+class BusinessProfile {
+  int? id;
+  String? name;
+  String? logo;
+  String? description;
+  int? totalEventsCreated;
+  int? totalFollowers;
+  bool? isFollowedByCurrentUser;
+
+  BusinessProfile({
+    this.id,
+    this.name,
+    this.logo,
+    this.description,
+    this.totalEventsCreated,
+    this.totalFollowers,
+    this.isFollowedByCurrentUser,
+  });
+
+  factory BusinessProfile.fromJson(Map<String, dynamic> json) {
+    return BusinessProfile(
+      id: json['id'],
+      name: json['name'],
+      logo: json['logo'],
+      description: json['description'],
+      totalEventsCreated: json['total_events_created'],
+      totalFollowers: json['total_followers'],
+      isFollowedByCurrentUser: json['is_followed_by_current_user'],
+    );
   }
 }

@@ -71,6 +71,7 @@ dependencies:
   hive_flutter: ^1.1.0
   jwt_decode:
   cloud_firestore: ^5.6.5
+  flutter_stripe: ^11.4.0
 
 dev_dependencies:
   flutter_test:

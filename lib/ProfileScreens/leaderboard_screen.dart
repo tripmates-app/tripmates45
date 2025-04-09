@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:get/get.dart';
 import 'package:simple_gradient_text/simple_gradient_text.dart';
+import 'package:tripmates/Constants/Apis_Constants.dart';
 import 'package:tripmates/Constants/button.dart';
 import 'package:tripmates/Constants/listdata.dart';
 import 'package:tripmates/Constants/utils.dart';
+import 'package:tripmates/Controller/ProfileController.dart';
+import 'package:tripmates/ProfileScreens/badges_screen.dart';
 
 class LeaderboardScreen extends StatefulWidget {
   const LeaderboardScreen({super.key});
@@ -13,11 +17,19 @@ class LeaderboardScreen extends StatefulWidget {
 }
 
 class _LeaderboardScreenState extends State<LeaderboardScreen> {
-  int selectedIndex1 = 0;
+  ProfileController profileController=Get.put(ProfileController());
+  int selectedIndex1 = 1;
   List status = [
     'Badges',
     'Leaderboard',
   ];
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    profileController.LeaderBoard();
+  }
+
   final _fromTop = true;
   @override
   Widget build(BuildContext context) {
@@ -68,7 +80,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                           itemBuilder: (_, index) => GestureDetector(
                             onTap: () {
                               setState(() {
-                                selectedIndex1 = index;
+                                Get.to(()=> BadgesScreen());
                               });
                             },
                             child: Container(
@@ -115,102 +127,108 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                 SizedBox(
                   height: 10,
                 ),
-                ListView.builder(
-                    physics: NeverScrollableScrollPhysics(),
-                    padding: EdgeInsets.zero,
-                    shrinkWrap: true,
-                    itemCount: leaderboardData.length,
-                    itemBuilder: (BuildContext context, int index) {
-                      return Padding(
-                        padding: const EdgeInsets.only(top: 13),
-                        child: Stack(
-                          alignment: Alignment.centerLeft,
-                          children: [
-                            Container(
-                              height: 83,
-                              decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(10),
-                                  color: leaderboardData[index].color),
-                              child: Padding(
-                                padding: const EdgeInsets.only(
-                                    left: 4, right: 16, top: 3, bottom: 3),
-                                child: Row(
-                                  children: [
-                                    CircleAvatar(
-                                      radius: 26,
-                                      backgroundImage: AssetImage(
-                                        leaderboardData[index].profile,
-                                      ),
-                                    ),
-                                    SizedBox(
-                                      width: 13,
-                                    ),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          Text(
-                                            leaderboardData[index].name,
-                                            style: TextStyle(
-                                                fontSize: 16,
-                                                fontWeight: FontWeight.w500,
-                                                color: Colors.black),
+                GetBuilder<ProfileController>(
+                  id: "Activity_update",
+                  builder: (_) {
+                    return ListView.builder(
+                        physics: NeverScrollableScrollPhysics(),
+                        padding: EdgeInsets.zero,
+                        shrinkWrap: true,
+                        itemCount: profileController.leaderBoardModel?.rankedUsers?.length ??0,
+                        itemBuilder: (BuildContext context, int index) {
+                          final leader= profileController.leaderBoardModel?.rankedUsers?[index];
+                          return Padding(
+                            padding: const EdgeInsets.only(top: 13),
+                            child: Stack(
+                              alignment: Alignment.centerLeft,
+                              children: [
+                                Container(
+                                  height: 83,
+                                  decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(10),
+                                      color: leaderboardData[index].color),
+                                  child: Padding(
+                                    padding: const EdgeInsets.only(
+                                        left: 4, right: 16, top: 3, bottom: 3),
+                                    child: Row(
+                                      children: [
+                                        CircleAvatar(
+                                          radius: 26,
+                                          backgroundImage: NetworkImage(
+                                            "${Apis.ip}${leader?.images?[0]}",
                                           ),
-                                          SizedBox(
-                                            height: 7,
+                                        ),
+                                        SizedBox(
+                                          width: 13,
+                                        ),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              Text(
+                                                leader?.name??"Unknown",
+                                                style: TextStyle(
+                                                    fontSize: 16,
+                                                    fontWeight: FontWeight.w500,
+                                                    color: Colors.black),
+                                              ),
+                                              SizedBox(
+                                                height: 7,
+                                              ),
+                                              Text(
+                                                "",
+                                                style: TextStyle(
+                                                  fontSize: 14,
+                                                  color: Colors.grey,
+                                                ),
+                                              ),
+                                            ],
                                           ),
-                                          Text(
-                                            leaderboardData[index].discription,
-                                            style: TextStyle(
-                                              fontSize: 14,
-                                              color: Colors.grey,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
+                                        ),
+                                        SizedBox(
+                                          width: 20,
+                                        ),
+                                        Image.asset(
+                                          leaderboardData[index].leaderboard,
+                                          height: 46,
+                                        )
+                                      ],
                                     ),
-                                    SizedBox(
-                                      width: 20,
-                                    ),
-                                    Image.asset(
-                                      leaderboardData[index].leaderboard,
-                                      height: 46,
-                                    )
-                                  ],
+                                  ),
                                 ),
-                              ),
+                                Padding(
+                                  padding: const EdgeInsets.only(left: 23, top: 48),
+                                  child: Row(
+                                    children: [
+                                      Container(
+                                        decoration: BoxDecoration(
+                                            border: Border.all(color: whiteColor),
+                                            shape: BoxShape.circle,
+                                            color: Color(0xff4F78DA)),
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(6.0),
+                                          child: Center(
+                                              child: Text(
+                                            '${leader?.rank}',
+                                            style: TextStyle(
+                                                fontSize: 9,
+                                                fontWeight: FontWeight.bold,
+                                                color: whiteColor),
+                                          )),
+                                        ),
+                                      )
+                                    ],
+                                  ),
+                                ),
+                              ],
                             ),
-                            Padding(
-                              padding: const EdgeInsets.only(left: 23, top: 48),
-                              child: Row(
-                                children: [
-                                  Container(
-                                    decoration: BoxDecoration(
-                                        border: Border.all(color: whiteColor),
-                                        shape: BoxShape.circle,
-                                        color: Color(0xff4F78DA)),
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(6.0),
-                                      child: Center(
-                                          child: Text(
-                                        '1',
-                                        style: TextStyle(
-                                            fontSize: 9,
-                                            fontWeight: FontWeight.bold,
-                                            color: whiteColor),
-                                      )),
-                                    ),
-                                  )
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    }),
+                          );
+                        });
+                  }
+                ),
                 SizedBox(
                   height: 15,
                 ),

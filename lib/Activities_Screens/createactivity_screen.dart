@@ -13,6 +13,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:geocode/geocode.dart';
 import 'package:top_snackbar_flutter/custom_snack_bar.dart';
 import 'package:top_snackbar_flutter/top_snack_bar.dart';
+import 'package:tripmates/Repository/ActivityRepository.dart';
 
 import '../Constants/button.dart';
 import '../Constants/utils.dart';
@@ -522,6 +523,8 @@ class _CreateactivityScreenState extends State<CreateactivityScreen> {
                           final location=  await acitivitycontroller.getCoordinatesFromGeoCode(_locationController.text);
                           print("the langitude is :${location["longitude"]}");
                           print("the Latitude is   :${location["latitude"]}");
+
+                          // Activityrepository().uploadActivityImage(image: _selectedImage!, activityId: "4");
                         final create=  await acitivitycontroller.CreateActivity(_selectedImage!,_activitytype.text, location["longitude"].toString(), location["latitude"].toString(), _description.text, _totalslots.text,  selectedTime.toString(), selectedDate.toString(), _locationController.text,_totaltime.text);
                           if(create){
                             Get.back();

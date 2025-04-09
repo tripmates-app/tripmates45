@@ -72,7 +72,7 @@ class _MyActivitiesScreenState extends State<MyActivitiesScreen> {
         ),
       ),
       appBar: PreferredSize(
-          preferredSize: Size.fromHeight(75), child: Customappbar()),
+          preferredSize: Size.fromHeight(75), child: CustomAppbar()),
       body: Padding(
         padding: const EdgeInsets.only(top: 20,left: 20,right: 20),
         child: SingleChildScrollView(

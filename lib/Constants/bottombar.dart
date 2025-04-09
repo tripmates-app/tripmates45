@@ -3,9 +3,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:tripmates/Constants/utils.dart';
 import 'package:tripmates/Home_Screen/home_screen.dart';
 import 'package:tripmates/Mates_Screens/mateswhoisaround_screen.dart';
-
 import '../Activities_Screens/activitiesdiscover_screen.dart';
-import '../ChatScreens/chat_list.dart';
 import '../ChatScreens/tabbar_screen.dart';
 import '../ProfileScreens/profile_screen.dart';
 

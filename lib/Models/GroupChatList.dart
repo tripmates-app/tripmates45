@@ -9,16 +9,16 @@ class GroupChatList {
     if (json['groupList'] != null) {
       groupList = <GroupList>[];
       json['groupList'].forEach((v) {
-        groupList!.add(new GroupList.fromJson(v));
+        groupList!.add(GroupList.fromJson(v));
       });
     }
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['message'] = this.message;
-    if (this.groupList != null) {
-      data['groupList'] = this.groupList!.map((v) => v.toJson()).toList();
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['message'] = message;
+    if (groupList != null) {
+      data['groupList'] = groupList!.map((v) => v.toJson()).toList();
     }
     return data;
   }
@@ -33,19 +33,27 @@ class GroupList {
   String? lastMessageTime;
   int? unreadMessages;
 
-  GroupList(
-      {this.groupId,
-        this.groupName,
-        this.groupImage,
-        this.createdAt,
-        this.lastMessage,
-        this.lastMessageTime,
-        this.unreadMessages});
+  GroupList({
+    this.groupId,
+    this.groupName,
+    this.groupImage = const [], // default to empty list
+    this.createdAt,
+    this.lastMessage,
+    this.lastMessageTime,
+    this.unreadMessages,
+  });
 
   GroupList.fromJson(Map<String, dynamic> json) {
     groupId = json['groupId'];
     groupName = json['groupName'];
-    groupImage = json['groupImage'].cast<String>();
+
+    // Safe handling of groupImage
+    if (json['groupImage'] != null && json['groupImage'] is List) {
+      groupImage = List<String>.from(json['groupImage']);
+    } else {
+      groupImage = [];
+    }
+
     createdAt = json['createdAt'];
     lastMessage = json['lastMessage'];
     lastMessageTime = json['lastMessageTime'];
@@ -53,14 +61,14 @@ class GroupList {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['groupId'] = this.groupId;
-    data['groupName'] = this.groupName;
-    data['groupImage'] = this.groupImage;
-    data['createdAt'] = this.createdAt;
-    data['lastMessage'] = this.lastMessage;
-    data['lastMessageTime'] = this.lastMessageTime;
-    data['unreadMessages'] = this.unreadMessages;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['groupId'] = groupId;
+    data['groupName'] = groupName;
+    data['groupImage'] = groupImage;
+    data['createdAt'] = createdAt;
+    data['lastMessage'] = lastMessage;
+    data['lastMessageTime'] = lastMessageTime;
+    data['unreadMessages'] = unreadMessages;
     return data;
   }
 }

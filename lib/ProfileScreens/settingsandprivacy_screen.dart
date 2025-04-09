@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:get/get.dart';
+import 'package:tripmates/ProfileScreens/ChangePasswordScreen.dart';
+
+import 'NotificationPreference.dart';
 
 class SettingsandprivacyScreen extends StatefulWidget {
   const SettingsandprivacyScreen({super.key});
@@ -37,15 +41,20 @@ class _SettingsandprivacyScreenState extends State<SettingsandprivacyScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: SvgPicture.asset(
-                  'assets/bel.svg',
-                  color: Theme.of(context).primaryColor,
-                  height: 23,
+              InkWell(
+                onTap: (){
+                  Get.to(()=> NotificationsPreferenceScreen());
+                },
+                child: ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: SvgPicture.asset(
+                    'assets/bel.svg',
+                    color: Theme.of(context).primaryColor,
+                    height: 23,
+                  ),
+                  title: Text('Notification preferences'),
+                  trailing: Icon(Icons.arrow_forward_ios_outlined),
                 ),
-                title: Text('Notification preferences'),
-                trailing: Icon(Icons.arrow_forward_ios_outlined),
               ),
               Divider(
                 thickness: 1.3,
@@ -64,15 +73,20 @@ class _SettingsandprivacyScreenState extends State<SettingsandprivacyScreen> {
               SizedBox(
                 height: 7,
               ),
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: SvgPicture.asset(
-                  'assets/loc.svg',
-                  color: Theme.of(context).primaryColor,
-                  height: 21,
+              InkWell(
+                onTap: (){
+                  Get.to(()=> ChangePasswordScreen());
+                },
+                child: ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: SvgPicture.asset(
+                    'assets/loc.svg',
+                    color: Theme.of(context).primaryColor,
+                    height: 21,
+                  ),
+                  title: Text('Change Password'),
+                  trailing: Icon(Icons.arrow_forward_ios_outlined),
                 ),
-                title: Text('Change Password'),
-                trailing: Icon(Icons.arrow_forward_ios_outlined),
               ),
               ListTile(
                 contentPadding: EdgeInsets.zero,

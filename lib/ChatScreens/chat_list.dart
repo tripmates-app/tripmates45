@@ -187,7 +187,7 @@ class _ChatListState extends State<ChatList> {
               context,
               MaterialPageRoute(
                 builder: (context) =>
-                    ChatScreen(providerName: name, conversationId: conversationid,reciverid: id,currentuserid: currentuserid,image: imageUrl,)
+                    ChatScreen(providerName: name, conversationId: conversationid,reciverid: id,currentuserid: currentuserid,image: imageUrl,online:status == "Active"? true:false ,)
                     // ChatScreen(providerName: name, receiverId: id,Image:imageUrl ,Online:status ,CurrentUser: "17",Conversationid:conversationid ,),
                 // ChatScreen(Image: imageUrl, Name: name, converstaionid: conversationid, isonline: status,reciverid: id,)
               ),

@@ -53,7 +53,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
     final token = pref.getString("token");
     print("The token is : $token");
     final response = await http.post(
-      Uri.parse('${Apis.baseurl}/api/comment/add'),
+      Uri.parse('${Apis.baseurl}/comment/add'),
       headers: {
         'Content-Type': 'application/json',
         "Authorization": "Bearer $token",

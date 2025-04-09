@@ -676,6 +676,229 @@ List<Widget> exploreActivitiescards = [
       ],
     ),
   ),
+  Container(
+    width: double.infinity,
+    height: 410,
+    decoration: BoxDecoration(
+      borderRadius: BorderRadius.circular(10),
+      color: Colors.transparent,
+      image: DecorationImage(
+        fit: BoxFit.cover,
+        image: AssetImage(
+          'assets/Group 48095878.png',
+        ),
+      ),
+    ),
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(13.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              SvgPicture.asset(
+                'assets/Group 48095897.svg',
+                height: 21,
+              ),
+              SizedBox(
+                width: 16,
+              ),
+              SvgPicture.asset(
+                'assets/Group 48095896.svg',
+                height: 21,
+              ),
+              SizedBox(
+                width: 16,
+              ),
+              SvgPicture.asset(
+                'assets/Group.svg',
+                height: 21,
+              ),
+            ],
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.only(left: 13, right: 13, bottom: 13),
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  CircleAvatar(
+                    radius: 33,
+                    backgroundImage:
+                        AssetImage('assets/woman-doing-yoga-garden.png'),
+                  ),
+                  SizedBox(
+                    width: 10,
+                  ),
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        width: 170,
+                        child: Text(
+                          'Hiking Adventure',
+                          style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white),
+                        ),
+                      ),
+                      SizedBox(
+                        height: 7,
+                      ),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          SvgPicture.asset(
+                            'assets/pin.svg',
+                            height: 14,
+                          ),
+                          SizedBox(
+                            width: 7,
+                          ),
+                          Container(
+                            width: 180,
+                            child: Text(
+                              'Green Valley National Park',
+                              style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.white),
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(
+                        height: 3,
+                      ),
+                      Row(
+                        children: [
+                          Text(
+                            'Sunday, February 4, 2025,',
+                            style: TextStyle(
+                                fontSize: 9,
+                                fontWeight: FontWeight.w500,
+                                color: Color(0xff00D4BD)),
+                          ),
+                          Text(
+                            ' at 8:00 AM',
+                            style: TextStyle(
+                                fontSize: 9,
+                                fontWeight: FontWeight.w500,
+                                color: Color(0xff00D4BD)),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              SizedBox(
+                height: 10,
+              ),
+              Text(
+                'Escape into nature and enjoy a refreshing hiking adventure! Join fellow enthusiasts for a scenic trail featuring lush greenery.',
+                style: TextStyle(fontSize: 13, color: Colors.white),
+              ),
+              SizedBox(
+                height: 7,
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Stack(
+                        children: [
+                          Container(
+                            height: 33,
+                            width: 33,
+                            decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Color(0xff5A5A5A)),
+                            child: Center(
+                              child: Icon(
+                                Icons.add,
+                                size: 30,
+                                color: whiteColor,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(
+                        width: 7,
+                      ),
+                      Text(
+                        '08/10 Joined',
+                        style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                            color: whiteColor),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              SizedBox(
+                height: 13,
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    height: 37,
+                    width: 80,
+                    decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(30),
+                        color: Colors.black54),
+                    child: Center(
+                      child: Text(
+                        'Skip',
+                        style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: whiteColor),
+                      ),
+                    ),
+                  ),
+                  SizedBox(
+                    width: 13,
+                  ),
+                  Container(
+                    height: 37,
+                    width: 80,
+                    decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(30),
+                        color: Color(0xff007BFD)),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          'Join',
+                          style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                              color: whiteColor),
+                        ),
+                        SizedBox(
+                          width: 5,
+                        ),
+                        SvgPicture.asset('assets/Group 48096111.svg')
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ],
+    ),
+  ),
 ];
 
 // Profile screen( Joined Activities )
@@ -901,5 +1124,32 @@ final List<LeaderboardData> leaderboardData = [
     Color(
       0xffF1F1F1,
     ),
+  ),
+];
+
+// Choose Payment Method (Premium)
+
+class PaymentMethod {
+  final String image;
+  final String name;
+
+  PaymentMethod(
+    this.image,
+    this.name,
+  );
+}
+
+final List<PaymentMethod> paymentMethod = [
+  PaymentMethod(
+    'assets/Group 48096151 (4).svg',
+    'Credit Card',
+  ),
+  PaymentMethod(
+    'assets/Group 48096151 (5).svg',
+    'Stripe',
+  ),
+  PaymentMethod(
+    'assets/paypal.svg',
+    'Paypal',
   ),
 ];

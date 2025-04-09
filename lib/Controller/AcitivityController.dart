@@ -3,7 +3,9 @@
 
 import 'dart:io';
 
+import 'package:flutter/material.dart';
 import 'package:geocode/geocode.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:tripmates/Constants/listdata.dart';
 import 'package:tripmates/Models/ActivityDetailsScreen.dart';
@@ -15,6 +17,7 @@ import 'package:tripmates/Models/MyActivityModel.dart';
 import 'package:tripmates/Models/NearbyMates.dart';
 import 'package:tripmates/Models/ProfileModel.dart';
 import 'package:tripmates/Models/SavedActivitesModel.dart';
+import 'package:tripmates/Models/UpComingActivityModel.dart';
 import 'package:tripmates/Repository/ActivityRepository.dart';
 import 'package:tripmates/Repository/MatesRepository.dart';
 import 'package:tripmates/Repository/ProfileRespository.dart';
@@ -30,6 +33,7 @@ class Acitivitycontroller extends GetxController {
   ActivityDetailsModel?activityDetailsModel;
   EventDetailsModel?eventDetailsModel;
   SavedEventsResponse?savedEventsResponse;
+  UpComingActivitiesModel?upComingActivitiesModel;
   var counter = 1.obs; // Initialize the counter inside StatefulBuilder
 
   void incrementCounter() {
@@ -85,7 +89,8 @@ class Acitivitycontroller extends GetxController {
 
 //..............................Get Acticity List ..................
 
-  Future<bool> CreateActivity(File image,
+  Future<bool> CreateActivity(
+      File image,
       String name,
       String longitude,
       String Latitude,
@@ -147,30 +152,73 @@ class Acitivitycontroller extends GetxController {
 
 //...................................... get the Location in Langitude and latitude ..........
 
+
+
   Future<Map<String, double>> getCoordinatesFromGeoCode(String addressInput) async {
+    // First try: Use device's GPS if address is not specific
+    if (addressInput.isEmpty || addressInput.toLowerCase().contains("current location")) {
+      try {
+        return await _getCurrentLocation();
+      } catch (e) {
+        print("Failed to get current location: $e");
+        // Continue to try geocoding
+      }
+    }
+
+    // Second try: Basic geocoding without API
     try {
       GeoCode geoCode = GeoCode();
+      Coordinates coordinates = await geoCode.forwardGeocoding(address: addressInput);
 
-      // Forward geocoding to get coordinates
-      Coordinates? coordinates = await geoCode.forwardGeocoding(address: addressInput);
-
-      // Ensure latitude and longitude are not null
-      double latitude = coordinates.latitude ?? 37.7749;  // Default: San Francisco, CA
-      double longitude = coordinates.longitude ?? -122.4194; // Default: San Francisco, CA
-
-      return {
-        'latitude': latitude,
-        'longitude': longitude,
-      };
+      if (coordinates.latitude != null && coordinates.longitude != null) {
+        // Basic validation of coordinates
+        if (_isValidCoordinate(coordinates.latitude!, coordinates.longitude!)) {
+          return {
+            'latitude': coordinates.latitude!,
+            'longitude': coordinates.longitude!,
+          };
+        }
+      }
     } catch (e) {
-      print('Error in getCoordinatesFromGeoCode: $e');
-
-      // Return default fallback coordinates in case of error
-      return {
-        'latitude': 37.7749,  // Default to San Francisco, CA
-        'longitude': -122.4194,
-      };
+      print("Geocoding failed: $e");
     }
+
+    // Final fallback: Try to get approximate location from device
+    try {
+      return await _getCurrentLocation();
+    } catch (e) {
+      print("Final fallback failed: $e");
+      throw Exception("Could not determine location from address '$addressInput'");
+    }
+  }
+
+  Future<Map<String, double>> _getCurrentLocation() async {
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      throw Exception('Location services are disabled');
+    }
+
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        throw Exception('Location permissions are denied');
+      }
+    }
+
+    Position position = await Geolocator.getCurrentPosition(
+      desiredAccuracy: LocationAccuracy.medium,
+    );
+
+    return {
+      'latitude': position.latitude,
+      'longitude': position.longitude,
+    };
+  }
+
+  bool _isValidCoordinate(double lat, double lng) {
+    // Basic validation that coordinates are within world bounds
+    return lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180;
   }
 
 
@@ -259,6 +307,14 @@ class Acitivitycontroller extends GetxController {
     if (activity == null) {
       return false;
     } else {
+      Get.snackbar(
+        "Success",
+        "Data fetched successfully",
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+        snackPosition: SnackPosition.BOTTOM,
+        duration: Duration(seconds: 2),
+      );
       // dailyActivites = DailyActivitesModel.fromJson(activity);
       update(["Activity_update"]);
       return true;
@@ -350,6 +406,78 @@ class Acitivitycontroller extends GetxController {
       return true;
     }
   }
+
+
+//................................ UpComing Activities...................
+  Future<bool> UpcommingActivities() async {
+    final activity = await Activityrepository().GetUpcomingActivites();
+    print("Profile Fatch is : $activity");
+    if (activity == null) {
+      return false;
+    } else {
+      upComingActivitiesModel = UpComingActivitiesModel.fromJson(activity);
+      update(["Activity_update"]);
+      return true;
+    }
+  }
+  
+  
+//..............................Follow Business...................................
+  Future<bool> FollowBusiness(String bussinessid) async {
+    final activity = await Activityrepository().FollowBusiness(bussinessid);
+    print("Profile Fatch is : $activity");
+    if (activity == null) {
+      return false;
+    } else {
+      // dailyActivites = DailyActivitesModel.fromJson(activity);
+      update(["Activity_update"]);
+      return true;
+    }
+  }
+
+//................................Unfollow Business...............................
+
+  Future<bool> unFollowBusiness(String bussinessid) async {
+    final activity = await Activityrepository().unFollowBusiness(bussinessid);
+    print("Profile Fatch is : $activity");
+    if (activity == null) {
+      return false;
+    } else {
+      // dailyActivites = DailyActivitesModel.fromJson(activity);
+      update(["Activity_update"]);
+      return true;
+    }
+  }
+//...............................Event Click.........................................
+
+  Future<bool> CLickFollowBusiness(String eventid) async {
+    final activity = await Activityrepository().CLickFollowBusiness(eventid);
+    print("Profile Fatch is : $activity");
+    if (activity == null) {
+      return false;
+    } else {
+      // dailyActivites = DailyActivitesModel.fromJson(activity);
+      update(["Activity_update"]);
+      return true;
+    }
+  }
+//..................................EventViews......................................
+
+  Future<bool> ViewFollowBusiness(String eventid) async {
+    final activity = await Activityrepository().ViewFollowBusiness(eventid);
+    print("Profile Fatch is : $activity");
+    if (activity == null) {
+      return false;
+    } else {
+      // dailyActivites = DailyActivitesModel.fromJson(activity);
+      update(["Activity_update"]);
+      return true;
+    }
+  }
+
+
+
+
 
 
 

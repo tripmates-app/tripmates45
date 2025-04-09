@@ -2,8 +2,9 @@
 
 class Apis{
 
-// ip
-static String ip="http://192.168.203.87:3001";
+
+// static String ip="https://fluttrr.com";
+static String ip="http://82.180.139.134:3001";
 // BaseUrl
 static String baseurl="$ip/api";
 
@@ -12,7 +13,7 @@ static String baseurl="$ip/api";
   static  String verifyotp="$baseurl/user/verify-otp";
   static  String googlelogin="$baseurl/user/google-login";
   static  String sendotp="$baseurl/user/send-otp";
-  static  String changepassword="$baseurl/user/changepassword";
+  static  String changepassword="$baseurl/user/change-password";
 
 //.........................Profile..............................
   static String Profile="$baseurl/user/profile";
@@ -24,6 +25,11 @@ static String baseurl="$ip/api";
   static String JoinedActivites="$baseurl/activity/joined-activities-count";
   static String userMatches="$baseurl/mate/liked-mates";
   static String ListJoinedActivites="$baseurl/activity/user-activities";
+  static String UpdateLocation="$baseurl/user/update-location";
+  static String UpdateFCMToken="$baseurl/user/token";
+  static String SetupProfile="$baseurl/user/create-profile";
+  static String online="$baseurl/user/online";
+  static String offline="$baseurl/user/offline";
 
 
 
@@ -65,6 +71,7 @@ static String baseurl="$ip/api";
   static String LeaveEvent="$baseurl/bussness/leaveEvent";
   static String UpdateActivity="$baseurl/activity/update";
   static String DeleteActivity="$baseurl/activity/delete";
+  static String UpcomingActivity="$baseurl/activity/upcoming";
 
 
 
@@ -81,13 +88,37 @@ static String baseurl="$ip/api";
 
 
 
+//............................BusinessPage..................................
+  static String RequestOtp="$baseurl/bussness/request-otp";
+  static String RequestVerify="$baseurl/bussness/verify";
+  static String CreateEvent="$baseurl/bussness/createEvent";
+  static String GetCreatedEvent="$baseurl/bussness/eventList";
+  static String GetBusinessPage="$baseurl/bussness/busness";
+  static String CreateBusinessProfile="$baseurl/bussness/create-profile";
+  static String UpdateBussinessPage="$baseurl/bussness/updates/";
+  static String EditeEvent="$baseurl/bussness/updateEvent/";
+  static String Analytics="$baseurl/bussness/analytics";
+  static String MYEventDetails="$baseurl/bussness/eventById/";
+  static String Subscription="$baseurl/bussness/create";
+  static String CancelSubscription="$baseurl/bussness/cancel";
+  static String BusinessStatus="$baseurl/bussness/bussnesStatus";
+  static String TopEvents="$baseurl/bussness/topEvent";
+  static String followBusiness="$baseurl/bussness/follow";
+  static String unfollowbusiness="$baseurl/bussness/unfollow";
+  static String eventClicks="$baseurl/bussness/events/";
+  static String eventview="$baseurl/bussness/events/";
 
 
 
+//...........................Badges List.........................
+  static String BadgesList="$baseurl/user/achiveList";
+  static String BadgesVerified="$baseurl/user/claimed";
+  static String LeaderBoard="$baseurl/user/ranking";
 
 
+//..............................Notifications..............................
 
-
+  static String NotificationScreen="$baseurl/mate/list_notifications";
 
 
 
